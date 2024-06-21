@@ -162,38 +162,6 @@
             endingLineNumber = "21"
             landmarkName = "SearchResponse"
             landmarkType = "3">
-            <Locations>
-               <Location
-                  uuid = "59465C69-0249-46CB-A2DE-D931C3A8D754 - 1d4f543fb50fb28e"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "Crate.SearchResponse.__allocating_init(from: Swift.Decoder) throws -&gt; Crate.SearchResponse"
-                  moduleName = "Crate"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jd/Desktop/University/2023/FIT3178/Crate/Crate/SearchResponse.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "0"
-                  endingLineNumber = "0"
-                  offsetFromSymbolStart = "28">
-               </Location>
-               <Location
-                  uuid = "59465C69-0249-46CB-A2DE-D931C3A8D754 - b6f68f8857ccb6d2"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "Crate.SearchResponse.init(from: Swift.Decoder) throws -&gt; Crate.SearchResponse"
-                  moduleName = "Crate"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jd/Desktop/University/2023/FIT3178/Crate/Crate/SearchResponse.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "12"
-                  endingLineNumber = "12"
-                  offsetFromSymbolStart = "248">
-               </Location>
-            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -434,53 +402,6 @@
             endingLineNumber = "187"
             landmarkName = "requestNewAlbums()"
             landmarkType = "7">
-            <Locations>
-               <Location
-                  uuid = "136E10E2-9EBC-4DD4-A478-877D2C670BB9 - bfcc49653c00239b"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(5) suspend resume partial function for Crate.DiscoveryCollectionViewController.requestNewAlbums() async -&gt; ()"
-                  moduleName = "Crate"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jd/Desktop/University/2023/FIT3178/Crate/Crate/DiscoveryCollectionViewController.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "171"
-                  endingLineNumber = "171"
-                  offsetFromSymbolStart = "1236">
-               </Location>
-               <Location
-                  uuid = "136E10E2-9EBC-4DD4-A478-877D2C670BB9 - bfcc49653c00239b"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(5) suspend resume partial function for Crate.DiscoveryCollectionViewController.requestNewAlbums() async -&gt; ()"
-                  moduleName = "Crate"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jd/Desktop/University/2023/FIT3178/Crate/Crate/DiscoveryCollectionViewController.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "171"
-                  endingLineNumber = "171"
-                  offsetFromSymbolStart = "1904">
-               </Location>
-               <Location
-                  uuid = "136E10E2-9EBC-4DD4-A478-877D2C670BB9 - 177da792c7797f99"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(7) suspend resume partial function for Crate.DiscoveryCollectionViewController.requestNewAlbums() async -&gt; ()"
-                  moduleName = "Crate"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jd/Desktop/University/2023/FIT3178/Crate/Crate/DiscoveryCollectionViewController.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "171"
-                  endingLineNumber = "171"
-                  offsetFromSymbolStart = "188">
-               </Location>
-            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -510,8 +431,7 @@
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "194"
-                  endingLineNumber = "194"
-                  offsetFromSymbolStart = "112">
+                  endingLineNumber = "194">
                </Location>
                <Location
                   uuid = "73456925-565A-476F-B283-8B722CAF1E64 - 17606a8a6b55d042"
@@ -525,8 +445,7 @@
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "194"
-                  endingLineNumber = "194"
-                  offsetFromSymbolStart = "0">
+                  endingLineNumber = "194">
                </Location>
             </Locations>
          </BreakpointContent>
@@ -574,8 +493,7 @@
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "158"
-                  endingLineNumber = "158"
-                  offsetFromSymbolStart = "616">
+                  endingLineNumber = "158">
                </Location>
                <Location
                   uuid = "B33B88DA-B786-416C-A427-8C0065B9A0CF - 625c27f3135fda31"
@@ -589,8 +507,7 @@
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "158"
-                  endingLineNumber = "158"
-                  offsetFromSymbolStart = "44">
+                  endingLineNumber = "158">
                </Location>
                <Location
                   uuid = "B33B88DA-B786-416C-A427-8C0065B9A0CF - bfcc49653c00204e"
@@ -604,8 +521,7 @@
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "158"
-                  endingLineNumber = "158"
-                  offsetFromSymbolStart = "204">
+                  endingLineNumber = "158">
                </Location>
                <Location
                   uuid = "B33B88DA-B786-416C-A427-8C0065B9A0CF - 177da792c7797c4c"
@@ -619,8 +535,7 @@
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "158"
-                  endingLineNumber = "158"
-                  offsetFromSymbolStart = "264">
+                  endingLineNumber = "158">
                </Location>
                <Location
                   uuid = "B33B88DA-B786-416C-A427-8C0065B9A0CF - ee1394cfce52b842"
@@ -634,8 +549,7 @@
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "158"
-                  endingLineNumber = "158"
-                  offsetFromSymbolStart = "96">
+                  endingLineNumber = "158">
                </Location>
             </Locations>
          </BreakpointContent>
