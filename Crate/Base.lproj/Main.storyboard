@@ -174,7 +174,7 @@
             </objects>
             <point key="canvasLocation" x="602" y="-390"/>
         </scene>
-        <!--Add SearchVC-->
+        <!--Item-->
         <scene sceneID="uTe-1z-mAb">
             <objects>
                 <collectionViewController id="m8u-tG-TeZ" customClass="AddSearchVC" customModule="Crate" customModuleProvider="target" sceneMemberID="viewController">
@@ -203,31 +203,15 @@
                             <outlet property="delegate" destination="m8u-tG-TeZ" id="aHC-rz-ute"/>
                         </connections>
                     </collectionView>
-                    <tabBarItem key="tabBarItem" title="" id="wwg-ds-V2V">
-                        <imageReference key="selectedImage" image="plus.circle" catalog="system" symbolScale="large"/>
+                    <tabBarItem key="tabBarItem" title="Item" selectedImage="plus.circle" catalog="system" id="n4e-uQ-Tx8">
+                        <color key="badgeColor" name="PrimaryColourColour"/>
                     </tabBarItem>
                     <navigationItem key="navigationItem" id="eag-np-ahU"/>
                     <simulatedTabBarMetrics key="simulatedBottomBarMetrics"/>
                 </collectionViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="P7n-rZ-epy" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-1411" y="541"/>
-        </scene>
-        <!--Add SearchVC-->
-        <scene sceneID="qxI-rn-egR">
-            <objects>
-                <viewController id="zNh-BF-PMJ" customClass="AddSearchVC" customModule="Crate" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" contentMode="scaleToFill" id="W8H-Rl-WK7">
-                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <viewLayoutGuide key="safeArea" id="U67-Sb-nPS"/>
-                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
-                    </view>
-                    <navigationItem key="navigationItem" id="jfk-EC-8J6"/>
-                </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="NAa-Jl-K83" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="-689.3129770992366" y="516.90140845070425"/>
+            <point key="canvasLocation" x="-773" y="617"/>
         </scene>
         <!--Album Details View Controller-->
         <scene sceneID="tkh-fY-P3F">
@@ -324,13 +308,13 @@
                                 <viewLayoutGuide key="frameLayoutGuide" id="8zh-Zo-c7g"/>
                             </scrollView>
                         </subviews>
-                        <viewLayoutGuide key="safeArea" id="CaH-4j-Khr"/>
+                        <viewLayoutGuide key="safeArea" id="pca-WC-t3L"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
-                            <constraint firstItem="dEt-VB-QqM" firstAttribute="leading" secondItem="Naq-JY-7sO" secondAttribute="leading" id="LaC-NC-1p1"/>
+                            <constraint firstItem="dEt-VB-QqM" firstAttribute="leading" secondItem="pca-WC-t3L" secondAttribute="leading" id="LaC-NC-1p1"/>
                             <constraint firstAttribute="bottom" secondItem="dEt-VB-QqM" secondAttribute="bottom" id="QPF-Wn-4cV"/>
                             <constraint firstItem="dEt-VB-QqM" firstAttribute="top" secondItem="Naq-JY-7sO" secondAttribute="top" id="dBN-i2-W5d"/>
-                            <constraint firstAttribute="trailing" secondItem="dEt-VB-QqM" secondAttribute="trailing" id="nw3-hc-vxE"/>
+                            <constraint firstItem="pca-WC-t3L" firstAttribute="trailing" secondItem="dEt-VB-QqM" secondAttribute="trailing" id="nw3-hc-vxE"/>
                         </constraints>
                     </view>
                     <tabBarItem key="tabBarItem" title="" id="87x-d7-P0B">
@@ -455,7 +439,7 @@
             <objects>
                 <navigationController id="xhl-B6-G4a" sceneMemberID="viewController">
                     <tabBarItem key="tabBarItem" title="" id="1s2-S0-nva">
-                        <imageReference key="selectedImage" image="plus.circle" catalog="system" symbolScale="large"/>
+                        <imageReference key="selectedImage" image="plus.circle" catalog="system"/>
                     </tabBarItem>
                     <simulatedTabBarMetrics key="simulatedBottomBarMetrics"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="ky6-74-lPa">
@@ -573,7 +557,7 @@
                                 </connections>
                             </button>
                         </subviews>
-                        <viewLayoutGuide key="safeArea" id="fs4-ST-lJO"/>
+                        <viewLayoutGuide key="safeArea" id="OAQ-y0-VdF"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     </view>
                     <navigationItem key="navigationItem" id="Gfs-Gj-wRj"/>
@@ -667,7 +651,7 @@
                                 </connections>
                             </button>
                         </subviews>
-                        <viewLayoutGuide key="safeArea" id="mwQ-uC-w42"/>
+                        <viewLayoutGuide key="safeArea" id="alS-4d-lbW"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     </view>
                     <navigationItem key="navigationItem" id="uPq-Bz-uvc"/>
@@ -791,7 +775,7 @@
                     <view key="view" contentMode="scaleToFill" id="lna-Hu-xJF">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <viewLayoutGuide key="safeArea" id="On1-75-Wf5"/>
+                        <viewLayoutGuide key="safeArea" id="dEd-Mn-hR3"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     </view>
                     <navigationItem key="navigationItem" id="K35-nY-bh6"/>

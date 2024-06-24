@@ -32,7 +32,7 @@ class AddSearchVC : UICollectionViewController {
     func configureUI() {
         AlbumScrollView.translatesAutoresizingMaskIntoConstraints = false
         AlbumScrollView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
-        AlbumScrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
+        AlbumScrollView.bottomAnchor.constraint(equalTo:view.bottomAnchor).isActive = true
         AlbumScrollView.leftAnchor.constraint(equalTo: view.leftAnchor).isActive = true
         AlbumScrollView.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
     }
@@ -47,6 +47,7 @@ class AddSearchVC : UICollectionViewController {
         view.addSubview(AlbumScrollView)
         AlbumScrollView.delegate = self
         AlbumScrollView.dataSource = self
+        self.tabBarItem = UITabBarItem(title: "Add Circle", image: UIImage(named: "plus.circle"), tag: 1)
         configureUI()
     }
 }
