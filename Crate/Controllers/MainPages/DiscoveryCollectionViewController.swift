@@ -20,11 +20,12 @@ class DiscoveryCollectionViewController: UICollectionViewController {
     var albumList = [SimpleAlbumData]()
     var delegate: AlbumDetailsDelegate?
 
-    
+        
     //    var imagePathList =
     //    var managedObjectContent:
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         indicator.style = UIActivityIndicatorView.Style.medium
         indicator.translatesAutoresizingMaskIntoConstraints = false
         self.view.addSubview(indicator)

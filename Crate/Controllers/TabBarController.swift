@@ -18,12 +18,12 @@ class TabController: UITabBarController {
     
     // Mark: - Tab Setup
     private func setupTabs() {
-        let add = self.createNav(with: "", and: UIImage(systemName: "plus.circle"), vc: AddSearchVC())
-        let discovery = self.createNav(with: "", and: UIImage(systemName: "opticaldisc"), vc: DiscoveryCollectionViewController())
+        let add = self.createNav(with: "", and: UIImage(systemName: "plus.circle"), vc: AddSearchVC(collectionViewLayout: UICollectionViewFlowLayout()))
+        let discovery = self.createNav(with: "", and: UIImage(systemName: "opticaldisc"), vc: DiscoveryViewController())
         let search = self.createNav(with: "", and: UIImage(systemName: "magnifyingglass"), vc: SearchTableViewController())
         let profile = self.createNav(with: "", and: UIImage(systemName: "person.crop.circle"), vc: ProfileViewController())
         let activity = self.createNav(with: "", and: UIImage(systemName: "quote.bubble"), vc: ActivityViewController())
-        self.setViewControllers([add, discovery, search, profile, activity], animated: true)
+        self.setViewControllers([discovery, search, add,profile, activity], animated: true)
     }
     
     private func createNav(with title: String, and image: UIImage?, vc: UIViewController) -> UINavigationController {
