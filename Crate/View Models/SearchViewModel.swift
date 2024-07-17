@@ -3,105 +3,46 @@ import Combine
 
 class SearchViewModel: ObservableObject {
     @Published var query: String = ""
-    @Published var results: [IdentifiableModel] = []
-    @Published var selectedSegment = "albums"
+    @Published var results: [IdentifiableProtocol] = []
+    @Published var selectedSegment = SearchSegment.Albums
     
-    private var cancellables = Set<AnyCancellable>()
+    private var cancellables: Set<AnyCancellable> = Set<AnyCancellable>()
+    private var searchDelay: Int = 300
+    private var querySize: Int = 12
     
     init() {
         $query
-            .debounce(for: .milliseconds(1000), scheduler: RunLoop.main)
-            .removeDuplicates()
-            .sink { [weak self] newQuery in
-                if self?.selectedSegment == "albums" {
-                    self?.fetchAlbums()
-                } else if self?.selectedSegment == "artists" {
-                    self?.fetchArtists()
-                } else {
-                    self?.fetchTracks()
-                }
+            .debounce(for: .milliseconds(searchDelay), scheduler: RunLoop.main)
+            .removeDuplicates { $0 == $1 }
+            .sink { [weak self] query in
+                self?.retrieveQuery(expansionQuery: false)
             }
             .store(in: &cancellables)
         
         $selectedSegment
-            .sink { [weak self] newSegment in
-                self?.fetchResults()
+            .sink { [weak self] segment in
+                self?.retrieveQuery(expansionQuery: false)
             }
             .store(in: &cancellables)
     }
     
-    public func fetchResults() {
-        switch selectedSegment {
-        case "albums":
-            fetchAlbums()
-        case "artists":
-            fetchArtists()
-        case "songs":
-            fetchTracks()
-        default:
-            break
-        }
-    }
-    
-    public func refreshAlbums() {
-        Task {
-            let result = await SpotifyAPIService.retrieveSearch(
-                for: query,
-                ofType: "album",
-                from: results.count,
-                to: results.count + 12
-            )
-            DispatchQueue.main.async { self.results.append(contentsOf: result) }
-        }
-    }
-    public func refreshArtists() {
-        Task {
-            let result = await SpotifyAPIService.retrieveSearch(
-                for: query,
-                ofType: "artist",
-                from: results.count,
-                to: results.count + 12
-            )
-            DispatchQueue.main.async { self.results.append(contentsOf: result) }
-        }
-    }
-    public func refreshSongs() {
-        Task {
-            let result = await SpotifyAPIService.retrieveSearch(
-                for: query,
-                ofType: "track",
-                from: results.count,
-                to: results.count + 12
-            )
-            DispatchQueue.main.async { self.results.append(contentsOf: result) }
-        }
-    }
-    
-    private func fetchAlbums() {
-        if query != "" {
-            Task {
-                self.results = await SpotifyAPIService.retrieveSearch(for: query, ofType: "album", from: 0, to: 12)
-            }
-        } else if !results.isEmpty {
+    public func retrieveQuery(expansionQuery: Bool) {
+        if query.isEmpty {
             results = []
-        }
-    }
-    private func fetchArtists() {
-        if query != "" {
+        } else {
             Task {
-                self.results = await SpotifyAPIService.retrieveSearch(for: query, ofType: "artist", from: 0, to: 12)
+                let result = await SpotifyAPIService.retrieveSearch(
+                    for: query,
+                    ofType: selectedSegment,
+                    from: results.count,
+                    to: results.count + 12
+                )
+                if expansionQuery {
+                    DispatchQueue.main.async { self.results.append(contentsOf: result) }
+                } else {
+                    DispatchQueue.main.async { self.results = result }
+                }
             }
-        } else if !results.isEmpty {
-            results = []
-        }
-    }
-    private func fetchTracks() {
-        if query != "" {
-            Task {
-                self.results = await SpotifyAPIService.retrieveSearch(for: query, ofType: "track", from: 0, to: 12)
-            }
-        } else if !results.isEmpty {
-            results = []
         }
     }
 }

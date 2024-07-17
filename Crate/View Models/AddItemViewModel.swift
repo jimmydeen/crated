@@ -3,7 +3,7 @@ import Combine
 
 class AddItemViewModel: ObservableObject {
     @Published var query: String = ""
-    @Published var results: [IdentifiableModel] = []
+    @Published var results: [IdentifiableProtocol] = []
 
     private var cancellables = Set<AnyCancellable>()
     
@@ -17,11 +17,11 @@ class AddItemViewModel: ObservableObject {
             .store(in: &cancellables)
     }
     
-    public func refreshAlbums() {
+    public func refreshAlbums(for album: IdentifiableProtocol) {
         Task {
             let result = await SpotifyAPIService.retrieveSearch(
                 for: query,
-                ofType: "album",
+                ofType: SearchSegment.Albums,
                 from: results.count,
                 to: results.count + 12
             )
@@ -32,9 +32,9 @@ class AddItemViewModel: ObservableObject {
     }
     
     private func fetchAlbums() {
-        if query != "" {
+        if !query.isEmpty {
             Task {
-                let result = await SpotifyAPIService.retrieveSearch(for: query, ofType: "album", from: 0, to: 12)
+                let result = await SpotifyAPIService.retrieveSearch(for: query, ofType: SearchSegment.Albums, from: 0, to: 12)
                 DispatchQueue.main.async {
                     self.results = result
                 }

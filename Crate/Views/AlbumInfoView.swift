@@ -24,8 +24,8 @@ struct AlbumInfoView: View {
                 Spacer()
             }
             
-            VStack {
-                AsyncImage(url: URL(string: albumInfoViewModel.album.album_image_url_hq)) { phase in
+            LazyVStack {
+                AsyncImage(url: URL(string: albumInfoViewModel.album.album_image_url_hq!)) { phase in
                     if (phase.image != nil) {
                         phase.image!
                             .resizable()

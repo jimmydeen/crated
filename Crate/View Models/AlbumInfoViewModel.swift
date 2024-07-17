@@ -20,7 +20,7 @@ class AlbumInfoViewModel: ObservableObject {
     }
     
     public func fetchColors() async {
-        guard let url = URL(string: album.album_image_url_lq),
+        guard let url = URL(string: album.album_image_url_lq!),
               let data = try? Data(contentsOf: url),
               let image = UIImage(data: data),
               let fetchedColors = image.getColors() else {

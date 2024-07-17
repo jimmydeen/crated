@@ -7,30 +7,34 @@ struct SearchView: View {
         NavigationView {
             VStack {
                 Picker("", selection: $searchViewModel.selectedSegment) {
-                    Text("Albums").tag("albums")
-                    Text("Artists").tag("artists")
-                    Text("Songs").tag("songs")
+                    Text("Albums").tag(SearchSegment.Albums)
+                    Text("Artists").tag(SearchSegment.Artists)
+                    Text("Tracks").tag(SearchSegment.Tracks)
                 }
-                .pickerStyle(.segmented)
                 .padding(.horizontal)
+                .pickerStyle(.segmented)
                 .onChange(of: searchViewModel.selectedSegment) {
-                    searchViewModel.fetchResults()
+                    searchViewModel.retrieveQuery(expansionQuery: false)
                 }
                 
-                if searchViewModel.results.isEmpty {} else {
+                if searchViewModel.results.isEmpty {
+                    
+                } else {
                     ScrollView {
-                        LazyVStack(alignment: .leading) {
-                            ForEach(0..<searchViewModel.results.count, id: \.self) { index in
-                                let item = searchViewModel.results[index]
-                                buildResultView(for: item, at: index)
-                                    .onAppear {
-                                        if index == searchViewModel.results.count - 1 {
-                                            loadMoreResults(for: item)
+                        LazyVStack {
+                            ForEach(searchViewModel.results.indices, id: \.self) { index in
+                                let result = searchViewModel.results[index]
+                                if isLastResult(at: index) {
+                                    SearchResultView(result: result)
+                                        .onAppear {
+                                            searchViewModel.retrieveQuery(expansionQuery: true)
                                         }
-                                    }
+                                } else {
+                                    SearchResultView(result: result)
+                                }
                             }
                         }
-                        .padding(.bottom, 3)
+                        .padding(.horizontal)
                     }
                 }
                 Spacer()
@@ -40,110 +44,63 @@ struct SearchView: View {
         .searchable(text: $searchViewModel.query)
     }
     
-    @ViewBuilder
-    private func buildResultView(for item: IdentifiableModel, at index: Int) -> some View {
-        if let album = item as? AlbumModel {
-            AlbumResultView(album: album)
-        } else if let artist = item as? ArtistModel {
-            ArtistResultView(artist: artist)
-        } else if let track = item as? TrackModel {
-            TrackResultView(track: track)
-        } else {
-            EmptyView()
-        }
-    }
-    
-    private func loadMoreResults(for item: IdentifiableModel) {
-        if item is AlbumModel {
-            searchViewModel.refreshAlbums()
-        } else if item is ArtistModel {
-            searchViewModel.refreshArtists()
-        } else if item is TrackModel {
-            searchViewModel.refreshSongs()
-        }
+    private func isLastResult(at resultIndex: Int) -> Bool {
+        return resultIndex == searchViewModel.results.count - 1
     }
 }
 
-struct ArtistResultView: View {
-    let artist: ArtistModel
+struct SearchResultView: View {
+    let result: IdentifiableProtocol
     
+    private let boxCornerRadius: CGFloat = 8
+    private let boxPadding: CGFloat = 8
+    private let coverCornerRadius: CGFloat = 4
     private let coverSize: CGFloat = 60
-    private let resultPaddingExternal: CGFloat = 8
-    private let resultPaddingInternal: CGFloat = 16
-    private let resultPaddingLeading: CGFloat = 2
+    private let horizontalElementSpacing: CGFloat = 12
+    private let innerElementSpacing: CGFloat = 6
+    private let placeholderOpacity: CGFloat = 0.12
     
     var body: some View {
-        HStack(alignment: .center) {
-            if artist.artist_image_url_lq != "" {
-                AsyncImage(url: URL(string: artist.artist_image_url_lq)) { phase in
+        HStack(alignment: .center, spacing: horizontalElementSpacing) {
+            if result.image_cover_url_lq != nil {
+                AsyncImage(url: URL(string: result.image_cover_url_lq!)) { phase in
                     phase.image?
                         .resizable()
                         .frame(width: coverSize, height: coverSize)
-                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                        .clipShape(RoundedRectangle(cornerRadius: coverCornerRadius))
                 }
-                .padding(.leading, resultPaddingLeading)
             } else {
-                RoundedRectangle(cornerRadius: 4)
+                RoundedRectangle(cornerRadius: coverCornerRadius)
                     .frame(width: coverSize, height: coverSize)
             }
-            
-            Text(artist.artist_name)
-                .font(.footnote)
-                .frame(height: coverSize)
-                .padding(.leading, resultPaddingLeading)
+            VStack(alignment: .leading) {
+                Spacer()
+                
+                Text(result.name)
+                    .font(.footnote)
+                
+                if result.artists != nil {
+                    Spacer().frame(height: innerElementSpacing)
+                    Text(result.artists!.joined(separator: ", "))
+                        .font(.footnote)
+                        .foregroundColor(.gray)
+                }
+                Spacer()
+            }
+            .frame(height: coverSize)
             
             Spacer()
         }
-        .padding(resultPaddingExternal)
+        .padding(boxPadding)
         .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color.gray.opacity(0.12))
+            RoundedRectangle(cornerRadius: boxCornerRadius)
+                .fill(Color.gray.opacity(placeholderOpacity))
         )
-        .padding(.horizontal)
     }
 }
 
-struct TrackResultView: View {
-    let track: TrackModel
-    
-    private let coverSize: CGFloat = 60
-    private let resultPaddingExternal: CGFloat = 8
-    private let resultPaddingInternal: CGFloat = 16
-    private let resultPaddingLeading: CGFloat = 2
-    
-    var body: some View {
-        HStack(alignment: .center) {
-            AsyncImage(url: URL(string: track.track_image_url_lq)) { phase in
-                phase.image?
-                    .resizable()
-                    .frame(width: coverSize, height: coverSize)
-                    .clipShape(
-                        RoundedRectangle(cornerRadius: 4)
-                    )
-            }
-            .padding(.leading, resultPaddingLeading)
-            
-            VStack(alignment: .leading) {
-                Text(track.track_name)
-                    .padding(.top, resultPaddingInternal)
-                    .foregroundColor(.black)
-                
-                Spacer()
-                Text(track.track_artists.joined(separator: ", "))
-                    .padding(.bottom, resultPaddingInternal)
-                    .foregroundColor(.gray)
-            }
-            .font(.footnote)
-            .frame(height: coverSize)
-            .padding(.leading, resultPaddingLeading)
-            
-            Spacer()
-        }
-        .padding(resultPaddingExternal)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color.gray.opacity(0.12))
-        )
-        .padding(.horizontal)
-    }
+public enum SearchSegment: String, CaseIterable {
+    case Albums = "album"
+    case Artists = "artist"
+    case Tracks = "track"
 }
