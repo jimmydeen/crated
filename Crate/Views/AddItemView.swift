@@ -15,9 +15,11 @@ struct AddItemView: View {
                                 let album = addItemViewModel.results[index]
                                 if isLastResult(at: index) {
                                     SearchResultView(result: album)
+                                        .padding(.horizontal)
                                         .onAppear { addItemViewModel.refreshAlbums(for: album) }
                                 } else {
                                     SearchResultView(result: album)
+                                        .padding(.horizontal)
                                 }
                             }
                         }
@@ -31,5 +33,11 @@ struct AddItemView: View {
     
     private func isLastResult(at resultIndex: Int) -> Bool {
         return resultIndex == addItemViewModel.results.count - 1
+    }
+}
+
+struct AddItemViewPreview: PreviewProvider {
+    static var previews: some View {
+        AddItemView()
     }
 }

@@ -1,10 +1,26 @@
 import SwiftUI
 
+struct HomeAlbumView: View {
+    let album: AlbumModel
+    
+    var body: some View {
+        NavigationLink(destination: AlbumInfoView(album: album)) {
+            AsyncImage(url: URL(string: album.album_image_url_hq!)) { image in
+                image
+                    .resizable()
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+            } placeholder: {
+                
+            }
+        }
+    }
+}
+
 struct HomeView: View {
     @StateObject var homeViewModel: HomeViewModel = HomeViewModel()
     
-    private let gridRowCount = 3
-    private let gridSpacing = UIScreen.main.bounds.width * 0.021
+    private let gridSpacing: CGFloat = UIScreen.main.bounds.width * 0.02
+    private let rowSize: Int = 3
     
     var body: some View {
         NavigationView {
@@ -17,46 +33,44 @@ struct HomeView: View {
                         Spacer()
                     }
                     .padding(.top)
-                    .padding(.leading, gridSpacing * 1.2)
+                    .padding(.leading, gridSpacing)
                     
-                    LazyVGrid(columns: Array(repeating: GridItem(.adaptive(minimum: 150)), count: 3), spacing: 10) {
+                    LazyVGrid(
+                        columns: Array(repeating: GridItem(.adaptive(minimum: 150)), count: rowSize),
+                        spacing: gridSpacing)
+                    {
                         ForEach(homeViewModel.albums.indices, id: \.self) { index in
                             let album = homeViewModel.albums[index]
                             
-                            if index == homeViewModel.albums.count - 1 {
-                                NavigationLink(destination: AlbumInfoView(album: album)) {
-                                    AsyncImage(url: URL(string: album.album_image_url_hq!)) { image in
-                                        image
-                                            .resizable()
-                                            .clipShape(RoundedRectangle(cornerRadius: 4))
-                                    } placeholder: {
-                                        
+                            if index == homeViewModel.albums.count - rowSize {
+                                HomeAlbumView(album: album)
+                                    .onAppear {
+                                        Task {
+                                            await homeViewModel.addAlbums()
+                                        }
                                     }
                                     .frame(width: cellSize, height: cellSize)
-                                }
-                                .onAppear { Task { await homeViewModel.addAlbums() } }
                             } else {
-                                NavigationLink(destination: AlbumInfoView(album: album)) {
-                                    AsyncImage(url: URL(string: album.album_image_url_hq!)) { image in
-                                        image
-                                            .resizable()
-                                            .clipShape(RoundedRectangle(cornerRadius: 4))
-                                    } placeholder: {
-                                        
-                                    }
+                                HomeAlbumView(album: album)
                                     .frame(width: cellSize, height: cellSize)
-                                }
                             }
                         }
                     }
                     .padding(.horizontal, gridSpacing)
-                    .padding(.bottom, 3)
                 }
             }
         }
     }
     
     private var cellSize: CGFloat {
-        return (UIScreen.main.bounds.width - (gridSpacing * 5)) / 3
+        let usedWidth = gridSpacing * (CGFloat(rowSize) + 2)
+        let availableWidth = UIScreen.main.bounds.width - usedWidth
+        return availableWidth / CGFloat(rowSize)
+    }
+}
+
+struct HomeViewPreview: PreviewProvider {
+    static var previews: some View {
+        HomeView()
     }
 }
