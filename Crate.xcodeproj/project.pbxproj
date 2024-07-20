@@ -29,10 +29,10 @@
 		651C284B2C47105B00FFE3A6 /* Errors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C28332C47105B00FFE3A6 /* Errors.swift */; };
 		651C284C2C47105B00FFE3A6 /* ActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C28352C47105B00FFE3A6 /* ActivityView.swift */; };
 		651C284D2C47105B00FFE3A6 /* AddItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C28362C47105B00FFE3A6 /* AddItemView.swift */; };
-		651C284E2C47105B00FFE3A6 /* AlbumInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C28372C47105B00FFE3A6 /* AlbumInfoView.swift */; };
 		651C284F2C47105B00FFE3A6 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C28382C47105B00FFE3A6 /* HomeView.swift */; };
 		651C28502C47105B00FFE3A6 /* IView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C28392C47105B00FFE3A6 /* IView.swift */; };
 		651C28512C47105B00FFE3A6 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C283A2C47105B00FFE3A6 /* SearchView.swift */; };
+		651DB07C2C4B6DC600A4C018 /* HomeAlbumViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651DB07B2C4B6DC600A4C018 /* HomeAlbumViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -59,10 +59,10 @@
 		651C28332C47105B00FFE3A6 /* Errors.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Errors.swift; sourceTree = "<group>"; };
 		651C28352C47105B00FFE3A6 /* ActivityView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ActivityView.swift; sourceTree = "<group>"; };
 		651C28362C47105B00FFE3A6 /* AddItemView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddItemView.swift; sourceTree = "<group>"; };
-		651C28372C47105B00FFE3A6 /* AlbumInfoView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AlbumInfoView.swift; sourceTree = "<group>"; };
 		651C28382C47105B00FFE3A6 /* HomeView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		651C28392C47105B00FFE3A6 /* IView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IView.swift; sourceTree = "<group>"; };
 		651C283A2C47105B00FFE3A6 /* SearchView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
+		651DB07B2C4B6DC600A4C018 /* HomeAlbumViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeAlbumViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -122,6 +122,7 @@
 				651C281E2C47105B00FFE3A6 /* AlbumInfoViewModel.swift */,
 				651C281F2C47105B00FFE3A6 /* HomeViewModel.swift */,
 				651C28202C47105B00FFE3A6 /* SearchViewModel.swift */,
+				651DB07B2C4B6DC600A4C018 /* HomeAlbumViewModel.swift */,
 			);
 			path = "View Models";
 			sourceTree = "<group>";
@@ -197,7 +198,6 @@
 			children = (
 				651C28352C47105B00FFE3A6 /* ActivityView.swift */,
 				651C28362C47105B00FFE3A6 /* AddItemView.swift */,
-				651C28372C47105B00FFE3A6 /* AlbumInfoView.swift */,
 				651C28382C47105B00FFE3A6 /* HomeView.swift */,
 				651C28392C47105B00FFE3A6 /* IView.swift */,
 				651C283A2C47105B00FFE3A6 /* SearchView.swift */,
@@ -278,13 +278,13 @@
 				651C28422C47105B00FFE3A6 /* ListModel.swift in Sources */,
 				651C28402C47105B00FFE3A6 /* AlbumModel.swift in Sources */,
 				651C283F2C47105B00FFE3A6 /* SearchViewModel.swift in Sources */,
-				651C284E2C47105B00FFE3A6 /* AlbumInfoView.swift in Sources */,
 				651C28512C47105B00FFE3A6 /* SearchView.swift in Sources */,
 				651C28442C47105B00FFE3A6 /* TrackModel.swift in Sources */,
 				651C284F2C47105B00FFE3A6 /* HomeView.swift in Sources */,
 				651C283D2C47105B00FFE3A6 /* AlbumInfoViewModel.swift in Sources */,
 				651C28122C470FF500FFE3A6 /* ContentView.swift in Sources */,
 				651C28432C47105B00FFE3A6 /* ReviewModel.swift in Sources */,
+				651DB07C2C4B6DC600A4C018 /* HomeAlbumViewModel.swift in Sources */,
 				651C28462C47105B00FFE3A6 /* Color+Extensions.swift in Sources */,
 				651C284A2C47105B00FFE3A6 /* ColorUtilities.swift in Sources */,
 				651C28412C47105B00FFE3A6 /* ArtistModel.swift in Sources */,

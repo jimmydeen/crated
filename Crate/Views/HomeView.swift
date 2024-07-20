@@ -1,71 +1,148 @@
 import SwiftUI
 
-struct HomeAlbumView: View {
-    let album: AlbumModel
+struct HomeAlbumContextView: View {
+    @State private var showGradient: Bool = false
+    @Binding var viewModel: HomeAlbumViewModel
+
+    private let albumDetailsOffsetNudgeVertical: CGFloat = 4
+    private let albumTypePaddingNudgeLeading: CGFloat = 2
+    private let cardCornerRadius: CGFloat = 8
+    private let cardPaddingTop: CGFloat = UIScreen.main.bounds.height * 0.05
+    private let cardPaddingInternal: CGFloat = 30
+    private let coverCornerRadius: CGFloat = 4
+    private let coverSize: CGFloat = UIScreen.main.bounds.width * 0.5
+    private let gradientHeight: CGFloat = 250
+    private let imagePaddingBottom: CGFloat = UIScreen.main.bounds.height * 0.015
+    private let internalPadding: CGFloat = 8
     
     var body: some View {
-        NavigationLink(destination: AlbumInfoView(album: album)) {
-            AsyncImage(url: URL(string: album.album_image_url_hq!)) { image in
-                image
-                    .resizable()
-                    .clipShape(RoundedRectangle(cornerRadius: 4))
-            } placeholder: {
-                
+        VStack {
+            ZStack(alignment: .top) {
+                ZStack {
+                    if showGradient {
+                        LinearGradient(
+                            gradient: Gradient(colors: viewModel.gradient),
+                            startPoint: .topLeading,
+                            endPoint: .center
+                        )
+                        LinearGradient(
+                            gradient: Gradient(colors: viewModel.gradient),
+                            startPoint: .topTrailing,
+                            endPoint: .center
+                        )
+                    }
+                }
+                .ignoresSafeArea(.all)
+                .transition(.opacity)
+                .animation(.easeOut(duration: 1.2), value: showGradient)
+
+                VStack(spacing: imagePaddingBottom) {
+                    Image(uiImage: viewModel.cover!)
+                        .resizable()
+                        .frame(width: coverSize, height: coverSize)
+                        .shadow(color: .black.opacity(0.1), radius: 12, x: 0, y: 0)
+
+                    VStack(alignment: .leading, spacing: 0) {
+                        HStack {
+                            Text(viewModel.album.album_type.uppercased())
+                                .padding(albumTypePaddingNudgeLeading)
+                            Spacer()
+                            Text(viewModel.album.album_release_date)
+                        }
+                        .font(.caption2)
+                        .fontWeight(.regular)
+                        .foregroundColor(.gray)
+                        .offset(y: albumDetailsOffsetNudgeVertical)
+                        
+                        Text(viewModel.album.album_name)
+                            .font(.title)
+                            .fontWeight(.semibold)
+                    }
+                    .padding(.horizontal, internalPadding)
+                }
+                .frame(width: coverSize)
+                .padding(cardPaddingInternal)
+                .background(
+                    RoundedRectangle(cornerRadius: cardCornerRadius)
+                        .fill(.white)
+                        .shadow(color: .black.opacity(0.2), radius: 12, x: 0, y: 0)
+                )
+                .padding(.top, cardPaddingTop)
+            }
+            Spacer()
+        }
+        .onAppear {
+            Task {
+                viewModel.fetchGradient()
+                showGradient = true
+            }
+        }
+    }
+}
+
+struct HomeAlbumView: View {
+    @State var viewModel: HomeAlbumViewModel
+    
+    init(album: AlbumModel) {
+        _viewModel = State(wrappedValue: HomeAlbumViewModel(album: album))
+    }
+    
+    var body: some View {
+        NavigationLink(destination: HomeAlbumContextView(viewModel: $viewModel)) {
+            if viewModel.cover != nil {
+                Image(uiImage: viewModel.cover!).resizable()
+            } else {
+                Rectangle().fill(.black.opacity(0.2))
+            }
+        }
+        .onAppear {
+            Task {
+                await viewModel.fetchCover()
             }
         }
     }
 }
 
 struct HomeView: View {
-    @StateObject var homeViewModel: HomeViewModel = HomeViewModel()
+    @State var viewModel: HomeViewModel = HomeViewModel()
     
-    private let gridSpacing: CGFloat = UIScreen.main.bounds.width * 0.02
-    private let rowSize: Int = 3
+    private let gridSpacing: CGFloat = UIScreen.main.bounds.width * 0.028
+    private let rowCellCount: Int = 3
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 0) {
-                ScrollView {
-                    HStack {
-                        Text("Let's Discover")
-                            .font(.title)
-                            .fontWeight(.bold)
-                        Spacer()
-                    }
-                    .padding(.top)
-                    .padding(.leading, gridSpacing)
-                    
-                    LazyVGrid(
-                        columns: Array(repeating: GridItem(.adaptive(minimum: 150)), count: rowSize),
-                        spacing: gridSpacing)
-                    {
-                        ForEach(homeViewModel.albums.indices, id: \.self) { index in
-                            let album = homeViewModel.albums[index]
-                            
-                            if index == homeViewModel.albums.count - rowSize {
-                                HomeAlbumView(album: album)
-                                    .onAppear {
-                                        Task {
-                                            await homeViewModel.addAlbums()
-                                        }
+            ScrollView {
+                LazyVGrid(
+                    columns: Array(repeating: GridItem(.flexible()), count: rowCellCount),
+                    spacing: gridSpacing)
+                {
+                    ForEach(Array(viewModel.albums.enumerated()), id: \.offset) { index, album in
+                        HomeAlbumView(album: album)
+                            .frame(width: cellSize, height: cellSize)
+                            .onAppear {
+                                if index == viewModel.albums.count - (rowCellCount + 1) {
+                                    Task {
+                                        await viewModel.fetchAlbums()
                                     }
-                                    .frame(width: cellSize, height: cellSize)
-                            } else {
-                                HomeAlbumView(album: album)
-                                    .frame(width: cellSize, height: cellSize)
+                                }
                             }
-                        }
                     }
-                    .padding(.horizontal, gridSpacing)
                 }
+                .padding(.horizontal, gridSpacing)
+            }
+            .navigationTitle("New releases")
+        }
+        .onAppear {
+            Task {
+                await viewModel.fetchAlbums()
             }
         }
     }
     
     private var cellSize: CGFloat {
-        let usedWidth = gridSpacing * (CGFloat(rowSize) + 2)
-        let availableWidth = UIScreen.main.bounds.width - usedWidth
-        return availableWidth / CGFloat(rowSize)
+        let totalSpace = UIScreen.main.bounds.width - (gridSpacing * (CGFloat(rowCellCount) + 1))
+        let cellSize = totalSpace / CGFloat(rowCellCount)
+        return cellSize
     }
 }
 
