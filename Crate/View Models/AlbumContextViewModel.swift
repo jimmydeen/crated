@@ -4,9 +4,9 @@ import SwiftUI
 import Combine
 import Observation
 
-@Observable class HomeAlbumViewModel {
+@Observable class AlbumContextViewModel {
     var cover: UIImage?
-    var gradient: [Color] = [.clear, .clear]
+    var gradient: Gradient?
     
     let album: AlbumModel
     
@@ -43,6 +43,6 @@ import Observation
         var gradientList = ColorUtilities.sortColorsByBrightness([primary, background])
         gradientList.append(.clear)
         
-        gradient = gradientList
+        gradient = Gradient(colors: gradientList)
     }
 }
