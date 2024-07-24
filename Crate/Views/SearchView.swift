@@ -81,15 +81,15 @@ struct SearchView: View {
                             }
                     }
                 }
+                .searchable(text: $viewModel.query)
+                .searchScopes($viewModel.segment) {
+                    Text("Albums").tag(SearchSegment.Albums)
+                    Text("Artists").tag(SearchSegment.Artists)
+                    Text("Tracks").tag(SearchSegment.Tracks)
+                }
                 .padding(.horizontal)
             }
             .navigationTitle("Search")
-            .searchable(text: $viewModel.query)
-            .searchScopes($viewModel.segment) {
-                Text("Albums").tag(SearchSegment.Albums)
-                Text("Artists").tag(SearchSegment.Artists)
-                Text("Tracks").tag(SearchSegment.Tracks)
-            }
         }
     }
     

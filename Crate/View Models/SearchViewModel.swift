@@ -8,22 +8,20 @@ import Observation
     
     private var querySize: Int = 12
     
-    private func newQuery() async {
+    @MainActor private func newQuery() async {
         self.results = []
-        if query == "" {
+        if query.isEmpty {
             return
         }
         await self.fetchResults()
     }
-    public func fetchResults() async {
+    @MainActor public func fetchResults() async {
         let result = await SpotifyAPIService.retrieveSearch(
             for: query,
             ofType: segment,
             from: self.results.count,
             to: self.results.count + self.querySize
         )
-        DispatchQueue.main.async {
-            self.results.append(contentsOf: result)
-        }
+        self.results.append(contentsOf: result)
     }
 }

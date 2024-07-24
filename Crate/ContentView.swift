@@ -7,7 +7,7 @@ struct ContentView: View {
             SearchView().tabItem { Image(systemName: "magnifyingglass") }
             AddView().tabItem { Image(systemName: "plus.circle") }
             ActivityView().tabItem { Image(systemName: "quote.bubble") }
-            IView().tabItem { Image(systemName: "person.crop.circle.fill") }
+            ProfileView().tabItem { Image(systemName: "person.crop.circle.fill") }
         }
     }
 }
@@ -17,3 +17,4 @@ struct ContentViewPreview: PreviewProvider {
         ContentView()
     }
 }
+
