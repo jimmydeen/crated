@@ -87,10 +87,6 @@ struct HomeAlbumContextView: View {
 struct HomeAlbumView: View {
     @State var viewModel: AlbumContextViewModel
     
-    init(album: AlbumModel) {
-        _viewModel = State(wrappedValue: AlbumContextViewModel(album: album))
-    }
-    
     var body: some View {
         NavigationLink(destination: HomeAlbumContextView(viewModel: $viewModel)) {
             if let cover = viewModel.cover {
@@ -120,11 +116,11 @@ struct HomeView: View {
                     columns: Array(repeating: GridItem(.flexible()), count: rowCellCount),
                     spacing: gridSpacing)
                 {
-                    ForEach(Array(viewModel.albums.enumerated()), id: \.offset) { index, album in
-                        HomeAlbumView(album: album)
+                    ForEach(viewModel.albums, id: \.id) { album in
+                        HomeAlbumView(viewModel: AlbumContextViewModel(album: album))
                             .frame(width: cellSize, height: cellSize)
                             .onAppear {
-                                if index == viewModel.albums.count - (rowCellCount + 1) {
+                                if album.id == viewModel.albums.last?.id {
                                     Task {
                                         await viewModel.fetchAlbums()
                                     }

@@ -2,11 +2,21 @@ import Foundation
 import Observation
 
 @Observable class SearchViewModel {
-    public var query: String = "" { didSet { Task { await self.newQuery() } } }
-    public var results: [IdentifiableProtocol] = []
-    public var segment = SearchSegment.Albums { didSet { Task { await self.newQuery() } } }
-    
-    private var querySize: Int = 12
+    var query: String = "" {
+        didSet {
+            Task {
+                await self.newQuery()
+            }
+        }
+    }
+    var results: [IdentifiableProtocol] = []
+    var segment = SearchSegment.Albums {
+        didSet {
+            Task {
+                await self.newQuery()
+            }
+        }
+    }
     
     @MainActor private func newQuery() async {
         self.results = []
@@ -20,7 +30,7 @@ import Observation
             for: query,
             ofType: segment,
             from: self.results.count,
-            to: self.results.count + self.querySize
+            to: self.results.count + 12
         )
         self.results.append(contentsOf: result)
     }

@@ -19,12 +19,12 @@ struct SearchResultView: View {
     
     var body: some View {
         HStack(alignment: .center, spacing: coverSpacingFromDetails) {
-            if result.image_cover_url_lq == nil {
+            if result.image_cover_url_low_quality == nil {
                 Rectangle()
                     .fill(.black.opacity(coverPlaceholderOpacity))
                     .frame(width: coverSize, height: coverSize)
             } else {
-                AsyncImage(url: URL(string: result.image_cover_url_lq!)) { phase in
+                AsyncImage(url: URL(string: result.image_cover_url_low_quality!)) { phase in
                     switch phase {
                         case .success(let image): image.resizable()
                         case .empty: Rectangle().fill(.black.opacity(coverPlaceholderOpacity))
@@ -70,10 +70,10 @@ struct SearchView: View {
         NavigationView {
             ScrollView {
                 LazyVStack {
-                    ForEach(Array(viewModel.results.enumerated()), id: \.offset) { index, result in
+                    ForEach(viewModel.results, id: \.id) { result in
                         SearchResultView(result: result)
                             .onAppear {
-                                if isLastResult(atIndex: index) {
+                                if result.id == viewModel.results.last?.id {
                                     Task {
                                         await viewModel.fetchResults()
                                     }
@@ -91,10 +91,6 @@ struct SearchView: View {
             }
             .navigationTitle("Search")
         }
-    }
-    
-    private func isLastResult(atIndex index: Int) -> Bool {
-        return index == viewModel.results.count - 1
     }
 }
 

@@ -74,8 +74,8 @@ class SpotifyAPIService {
                     album_id: album.id,
                     album_type: album.album_type,
                     album_release_date: album.release_date,
-                    album_image_url_hq: album.images?.first?.url,
-                    album_image_url_lq: album.images?.dropFirst().first?.url
+                    album_image_url_high_quality: album.images?.first?.url,
+                    album_image_url_low_quality: album.images?.dropFirst().first?.url
                 )
             }
         } catch {
@@ -108,8 +108,8 @@ class SpotifyAPIService {
                     track_name: track.name,
                     track_index: track.track_number,
                     track_artists: track.artists.map { $0.name },
-                    track_image_url_hq: album.image_cover_url_hq,
-                    track_image_url_lq: album.image_cover_url_lq
+                    track_image_url_high_quality: album.image_cover_url_high_quality,
+                    track_image_url_low_quality: album.image_cover_url_low_quality
                 )
             }
         } catch {
@@ -150,8 +150,8 @@ class SpotifyAPIService {
                         album_id: album.id,
                         album_type: album.album_type,
                         album_release_date: album.release_date,
-                        album_image_url_hq: album.images?.first?.url,
-                        album_image_url_lq: album.images?.dropFirst().first?.url
+                        album_image_url_high_quality: album.images?.first?.url,
+                        album_image_url_low_quality: album.images?.dropFirst().first?.url
                     )
                 }
             case .Artists:
@@ -160,8 +160,8 @@ class SpotifyAPIService {
                     ArtistModel(
                         artist_name: artist.name,
                         artist_id: artist.id,
-                        artist_image_url_hq: artist.images?.first?.url,
-                        artist_image_url_lq: artist.images?.dropFirst().first?.url
+                        artist_image_url_high_quality: artist.images?.first?.url,
+                        artist_image_url_low_quality: artist.images?.dropFirst().first?.url
                     )
                 }
             case .Tracks:
@@ -173,8 +173,8 @@ class SpotifyAPIService {
                         track_name: track.name,
                         track_index: track.track_number,
                         track_artists: track.artists.map { $0.name },
-                        track_image_url_hq: track.album.images?.first?.url,
-                        track_image_url_lq: track.album.images?.dropFirst().first?.url
+                        track_image_url_high_quality: track.album.images?.first?.url,
+                        track_image_url_low_quality: track.album.images?.dropFirst().first?.url
                     )
                 }
             }
