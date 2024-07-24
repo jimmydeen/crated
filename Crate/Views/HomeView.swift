@@ -2,7 +2,7 @@ import SwiftUI
 
 struct HomeAlbumContextView: View {
     @State private var showGradient: Bool = false
-    @Binding var viewModel: HomeAlbumViewModel
+    @Binding var viewModel: AlbumContextViewModel
 
     private let albumDetailsOffsetNudgeVertical: CGFloat = 4
     private let albumTypePaddingNudgeLeading: CGFloat = 2
@@ -21,12 +21,13 @@ struct HomeAlbumContextView: View {
                 ZStack {
                     if showGradient {
                         LinearGradient(
-                            gradient: Gradient(colors: viewModel.gradient),
+                            gradient: viewModel.gradient!,
                             startPoint: .topLeading,
                             endPoint: .center
                         )
+                        
                         LinearGradient(
-                            gradient: Gradient(colors: viewModel.gradient),
+                            gradient: viewModel.gradient!,
                             startPoint: .topTrailing,
                             endPoint: .center
                         )
@@ -46,7 +47,9 @@ struct HomeAlbumContextView: View {
                         HStack {
                             Text(viewModel.album.album_type.uppercased())
                                 .padding(albumTypePaddingNudgeLeading)
+                            
                             Spacer()
+                            
                             Text(viewModel.album.album_release_date)
                         }
                         .font(.caption2)
@@ -69,6 +72,7 @@ struct HomeAlbumContextView: View {
                 )
                 .padding(.top, cardPaddingTop)
             }
+            
             Spacer()
         }
         .onAppear {
@@ -81,18 +85,18 @@ struct HomeAlbumContextView: View {
 }
 
 struct HomeAlbumView: View {
-    @State var viewModel: HomeAlbumViewModel
+    @State var viewModel: AlbumContextViewModel
     
     init(album: AlbumModel) {
-        _viewModel = State(wrappedValue: HomeAlbumViewModel(album: album))
+        _viewModel = State(wrappedValue: AlbumContextViewModel(album: album))
     }
     
     var body: some View {
         NavigationLink(destination: HomeAlbumContextView(viewModel: $viewModel)) {
-            if viewModel.cover != nil {
-                Image(uiImage: viewModel.cover!).resizable()
+            if let cover = viewModel.cover {
+                Image(uiImage: cover).resizable()
             } else {
-                Rectangle().fill(.black.opacity(0.2))
+                Rectangle().fill(Color.gray.opacity(0.2))
             }
         }
         .onAppear {

@@ -1,48 +1,29 @@
 import Foundation
-import Combine
+import Observation
 
-class SearchViewModel: ObservableObject {
-    @Published var query: String = ""
-    @Published var results: [IdentifiableProtocol] = []
-    @Published var selectedSegment = SearchSegment.Albums
+@Observable class SearchViewModel {
+    public var query: String = "" { didSet { Task { await self.newQuery() } } }
+    public var results: [IdentifiableProtocol] = []
+    public var segment = SearchSegment.Albums { didSet { Task { await self.newQuery() } } }
     
-    private var cancellables: Set<AnyCancellable> = Set<AnyCancellable>()
-    private var searchDelay: Int = 300
     private var querySize: Int = 12
     
-    init() {
-        $query
-            .debounce(for: .milliseconds(searchDelay), scheduler: RunLoop.main)
-            .removeDuplicates { $0 == $1 }
-            .sink { [weak self] query in
-                self?.retrieveQuery(expansionQuery: false)
-            }
-            .store(in: &cancellables)
-        
-        $selectedSegment
-            .sink { [weak self] segment in
-                self?.retrieveQuery(expansionQuery: false)
-            }
-            .store(in: &cancellables)
+    private func newQuery() async {
+        self.results = []
+        if query == "" {
+            return
+        }
+        await self.fetchResults()
     }
-    
-    public func retrieveQuery(expansionQuery: Bool) {
-        if query.isEmpty {
-            results = []
-        } else {
-            Task {
-                let result = await SpotifyAPIService.retrieveSearch(
-                    for: query,
-                    ofType: selectedSegment,
-                    from: results.count,
-                    to: results.count + 12
-                )
-                if expansionQuery {
-                    DispatchQueue.main.async { self.results.append(contentsOf: result) }
-                } else {
-                    DispatchQueue.main.async { self.results = result }
-                }
-            }
+    public func fetchResults() async {
+        let result = await SpotifyAPIService.retrieveSearch(
+            for: query,
+            ofType: segment,
+            from: self.results.count,
+            to: self.results.count + self.querySize
+        )
+        DispatchQueue.main.async {
+            self.results.append(contentsOf: result)
         }
     }
 }

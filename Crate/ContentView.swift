@@ -5,7 +5,7 @@ struct ContentView: View {
         TabView {
             HomeView().tabItem { Image(systemName: "opticaldisc") }
             SearchView().tabItem { Image(systemName: "magnifyingglass") }
-            AddItemView().tabItem { Image(systemName: "plus.circle") }
+            AddView().tabItem { Image(systemName: "plus.circle") }
             ActivityView().tabItem { Image(systemName: "quote.bubble") }
             IView().tabItem { Image(systemName: "person.crop.circle.fill") }
         }
