@@ -19,21 +19,24 @@ struct SearchResultView: View {
     
     var body: some View {
         HStack(alignment: .center, spacing: coverSpacingFromDetails) {
-            if result.image_cover_url_low_quality == nil {
-                Rectangle()
-                    .fill(.black.opacity(coverPlaceholderOpacity))
-                    .frame(width: coverSize, height: coverSize)
-            } else {
-                AsyncImage(url: URL(string: result.image_cover_url_low_quality!)) { phase in
-                    switch phase {
-                        case .success(let image): image.resizable()
-                        case .empty: Rectangle().fill(.black.opacity(coverPlaceholderOpacity))
-                        case .failure: Rectangle().fill(.black.opacity(coverPlaceholderOpacity))
-                        @unknown default: Rectangle().fill(.black.opacity(coverPlaceholderOpacity))
+            Rectangle()
+                .fill(Colors.placeholderGray)
+                .frame(width: coverSize, height: coverSize)
+                .overlay {
+                    if let imageUrl = result.image_url_low_quality,
+                       let url = URL(string: imageUrl) {
+                        AsyncImage(url: url) { phase in
+                            switch phase {
+                            case .success(let image):
+                                image.resizable()
+                            case .failure, .empty:
+                                Rectangle().fill(.black.opacity(coverPlaceholderOpacity))
+                            @unknown default:
+                                Rectangle().fill(.black.opacity(coverPlaceholderOpacity))
+                            }
+                        }
                     }
                 }
-                .frame(width: coverSize, height: coverSize)
-            }
             
             VStack(alignment: .leading) {
                 Spacer()
@@ -64,10 +67,10 @@ struct SearchResultView: View {
 }
 
 struct SearchView: View {
-    @State private var viewModel: SearchViewModel = SearchViewModel()
+    @State var viewModel: SearchViewModel = SearchViewModel()
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 LazyVStack {
                     ForEach(viewModel.results, id: \.id) { result in
@@ -81,6 +84,7 @@ struct SearchView: View {
                             }
                     }
                 }
+                .navigationTitle("Search")
                 .searchable(text: $viewModel.query)
                 .searchScopes($viewModel.segment) {
                     Text("Albums").tag(SearchSegment.Albums)
@@ -89,7 +93,6 @@ struct SearchView: View {
                 }
                 .padding(.horizontal)
             }
-            .navigationTitle("Search")
         }
     }
 }

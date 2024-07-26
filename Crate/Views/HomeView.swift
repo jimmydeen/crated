@@ -1,49 +1,48 @@
 import SwiftUI
 
 struct HomeAlbumContextView: View {
-    @State private var showGradient: Bool = false
+    @State var showingGradient: Bool = false
     @Binding var viewModel: AlbumContextViewModel
 
     private let albumDetailsOffsetNudgeVertical: CGFloat = 4
     private let albumTypePaddingNudgeLeading: CGFloat = 2
     private let cardCornerRadius: CGFloat = 8
+    private let cardElementSpacing: CGFloat = 0
     private let cardPaddingTop: CGFloat = UIScreen.main.bounds.height * 0.05
     private let cardPaddingInternal: CGFloat = 30
     private let coverCornerRadius: CGFloat = 4
     private let coverSize: CGFloat = UIScreen.main.bounds.width * 0.5
+    private let gradientAnimationDuration: CGFloat = 1.2
     private let gradientHeight: CGFloat = 250
     private let imagePaddingBottom: CGFloat = UIScreen.main.bounds.height * 0.015
     private let internalPadding: CGFloat = 8
+    private let shadowRadius: CGFloat = 12
     
     var body: some View {
         VStack {
             ZStack(alignment: .top) {
                 ZStack {
-                    if showGradient {
+                    if showingGradient {
                         LinearGradient(
                             gradient: viewModel.gradient!,
-                            startPoint: .topLeading,
-                            endPoint: .center
-                        )
-                        
-                        LinearGradient(
-                            gradient: viewModel.gradient!,
-                            startPoint: .topTrailing,
+                            startPoint: .top,
                             endPoint: .center
                         )
                     }
                 }
                 .ignoresSafeArea(.all)
-                .transition(.opacity)
-                .animation(.easeOut(duration: 1.2), value: showGradient)
+                .animation(
+                    .easeOut(duration: gradientAnimationDuration),
+                    value: showingGradient
+                )
 
                 VStack(spacing: imagePaddingBottom) {
                     Image(uiImage: viewModel.cover!)
                         .resizable()
                         .frame(width: coverSize, height: coverSize)
-                        .shadow(color: .black.opacity(0.1), radius: 12, x: 0, y: 0)
+                        .shadow(radius: shadowRadius)
 
-                    VStack(alignment: .leading, spacing: 0) {
+                    VStack(alignment: .leading, spacing: cardElementSpacing) {
                         HStack {
                             Text(viewModel.album.album_type.uppercased())
                                 .padding(albumTypePaddingNudgeLeading)
@@ -68,7 +67,7 @@ struct HomeAlbumContextView: View {
                 .background(
                     RoundedRectangle(cornerRadius: cardCornerRadius)
                         .fill(.white)
-                        .shadow(color: .black.opacity(0.2), radius: 12, x: 0, y: 0)
+                        .shadow(radius: shadowRadius)
                 )
                 .padding(.top, cardPaddingTop)
             }
@@ -78,7 +77,7 @@ struct HomeAlbumContextView: View {
         .onAppear {
             Task {
                 viewModel.fetchGradient()
-                showGradient = true
+                showingGradient = true
             }
         }
     }
@@ -89,10 +88,15 @@ struct HomeAlbumView: View {
     
     var body: some View {
         NavigationLink(destination: HomeAlbumContextView(viewModel: $viewModel)) {
-            if let cover = viewModel.cover {
-                Image(uiImage: cover).resizable()
-            } else {
-                Rectangle().fill(Color.gray.opacity(0.2))
+            ZStack {
+                Rectangle().fill(Colors.placeholderGray)
+                
+                if let cover = viewModel.cover {
+                    Image(uiImage: cover)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .clipped()
+                }
             }
         }
         .onAppear {
@@ -113,7 +117,10 @@ struct HomeView: View {
         NavigationView {
             ScrollView {
                 LazyVGrid(
-                    columns: Array(repeating: GridItem(.flexible()), count: rowCellCount),
+                    columns: Array(
+                        repeating: GridItem(.flexible()),
+                        count: rowCellCount
+                    ),
                     spacing: gridSpacing)
                 {
                     ForEach(viewModel.albums, id: \.id) { album in

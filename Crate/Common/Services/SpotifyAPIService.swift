@@ -10,7 +10,8 @@ class SpotifyAPIService {
     private static var tokenExpirationDate: Date?
     private static let urlSession = URLSession(configuration: .default)
     
-    static func authenticate() async throws -> String {
+    // Authentication
+    private static func authenticate() async throws -> String {
         if let token = accessToken, let expirationDate = tokenExpirationDate, Date() < expirationDate {
             return token
         }
@@ -45,138 +46,60 @@ class SpotifyAPIService {
         return accessToken
     }
     
+    private static func retrieveData(from url: URL) async throws -> Data {
+        let token = try await authenticate()
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        
+        let (data, response) = try await urlSession.data(for: request)
+        guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
+            throw SpotifyError.InvalidResponse
+        }
+        return data
+    }
+    private static func decode<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {
+        let decoder = JSONDecoder()
+        return try decoder.decode(type, from: data)
+    }
+    
     static func retrieveLatestAlbums(from start: Int, to end: Int) async -> [AlbumModel] {
-        var components = URLComponents()
-        components.scheme = "https"
-        components.host = "api.spotify.com"
-        components.path = "/v1/browse/new-releases/"
-        components.queryItems = [
-            URLQueryItem(name: "country", value: searchRegion),
-            URLQueryItem(name: "limit", value: String(end - start)),
-            URLQueryItem(name: "offset", value: String(start))
-        ]
-        
         do {
-            let requestToken = try await authenticate()
-            var requestURL = URLRequest(url: components.url!)
-            requestURL.httpMethod = "GET"
-            requestURL.setValue("Bearer \(requestToken)", forHTTPHeaderField: "Authorization")
-            
-            let (data, _) = try await urlSession.data(for: requestURL)
-            
-            let decoder = JSONDecoder()
-            let searchResponse = try decoder.decode(SearchResponseAlbumsModel.self, from: data)
-            
-            return searchResponse.albums.items.map { album in
-                AlbumModel(
-                    album_name: album.name,
-                    album_artists: album.artists.map { $0.name },
-                    album_id: album.id,
-                    album_type: album.album_type,
-                    album_release_date: album.release_date,
-                    album_image_url_high_quality: album.images?.first?.url,
-                    album_image_url_low_quality: album.images?.dropFirst().first?.url
-                )
-            }
+            let url = URL(string: "https://api.spotify.com/v1/browse/new-releases?country=\(searchRegion)&limit=\(end - start)&offset=\(start)")!
+            let data = try await retrieveData(from: url)
+            let response = try decode(SearchResponseAlbumsModel.self, from: data)
+            return response.albums.items.map { $0.toModel() }
         } catch {
             print(error)
             return []
         }
     }
-    
     static func retrieveTracks(for album: AlbumModel) async -> [TrackModel] {
-        var components = URLComponents()
-        components.scheme = "https"
-        components.host = "api.spotify.com"
-        components.path = "/v1/albums/\(album.album_id)/tracks"
-        
         do {
-            let requestToken = try await authenticate()
-            var requestURL = URLRequest(url: components.url!)
-            requestURL.httpMethod = "GET"
-            requestURL.setValue("Bearer \(requestToken)", forHTTPHeaderField: "Authorization")
-            
-            let (data, _) = try await urlSession.data(for: requestURL)
-            
-            let decoder = JSONDecoder()
-            let searchResponse = try decoder.decode(SpotifyAlbumTracksModel.self, from: data)
-            
-            return searchResponse.items.map { track in
-                TrackModel(
-                    album_id: album.album_id,
-                    track_id: track.id,
-                    track_name: track.name,
-                    track_index: track.track_number,
-                    track_artists: track.artists.map { $0.name },
-                    track_image_url_high_quality: album.image_cover_url_high_quality,
-                    track_image_url_low_quality: album.image_cover_url_low_quality
-                )
-            }
+            let url = URL(string: "https://api.spotify.com/v1/albums/\(album.album_id)/tracks")!
+            let data = try await retrieveData(from: url)
+            let response = try decode(SpotifyAlbumTracksModel.self, from: data)
+            return response.items.map { $0.toModel(for: album) }
         } catch {
             print(error)
             return []
         }
     }
-    
     static func retrieveSearch(for query: String, ofType type: SearchSegment, from start: Int, to end: Int) async -> [IdentifiableProtocol] {
-        var components = URLComponents()
-        components.scheme = "https"
-        components.host = "api.spotify.com"
-        components.path = "/v1/search/"
-        components.queryItems = [
-            URLQueryItem(name: "q", value: query),
-            URLQueryItem(name: "type", value: type.rawValue),
-            URLQueryItem(name: "market", value: searchRegion),
-            URLQueryItem(name: "limit", value: String(end - start)),
-            URLQueryItem(name: "offset", value: String(start))
-        ]
-        
         do {
-            let requestToken = try await authenticate()
-            var requestURL = URLRequest(url: components.url!)
-            requestURL.httpMethod = "GET"
-            requestURL.setValue("Bearer \(requestToken)", forHTTPHeaderField: "Authorization")
-            
-            let (data, _) = try await urlSession.data(for: requestURL)
-            let decoder = JSONDecoder()
+            let url = URL(string: "https://api.spotify.com/v1/search?q=\(query)&type=\(type.rawValue)&market=\(searchRegion)&limit=\(end - start)&offset=\(start)")!
+            let data = try await retrieveData(from: url)
             
             switch type {
             case .Albums:
-                let searchResponse = try decoder.decode(SearchResponseAlbumsModel.self, from: data)
-                return searchResponse.albums.items.map { album in
-                    AlbumModel(
-                        album_name: album.name,
-                        album_artists: album.artists.map { $0.name },
-                        album_id: album.id,
-                        album_type: album.album_type,
-                        album_release_date: album.release_date,
-                        album_image_url_high_quality: album.images?.first?.url,
-                        album_image_url_low_quality: album.images?.dropFirst().first?.url
-                    )
-                }
+                let response = try decode(SearchResponseAlbumsModel.self, from: data)
+                return response.albums.items.map { $0.toModel() }
             case .Artists:
-                let searchResponse = try decoder.decode(SearchResponseArtistsModel.self, from: data)
-                return searchResponse.artists.items.map { artist in
-                    ArtistModel(
-                        artist_name: artist.name,
-                        artist_id: artist.id,
-                        artist_image_url_high_quality: artist.images?.first?.url,
-                        artist_image_url_low_quality: artist.images?.dropFirst().first?.url
-                    )
-                }
+                let response = try decode(SearchResponseArtistsModel.self, from: data)
+                return response.artists.items.map { $0.toModel() }
             case .Tracks:
-                let searchResponse = try decoder.decode(SearchResponseTracksModel.self, from: data)
-                return searchResponse.tracks.items.map { track in
-                    TrackModel(
-                        album_id: track.album.id,
-                        track_id: track.id,
-                        track_name: track.name,
-                        track_index: track.track_number,
-                        track_artists: track.artists.map { $0.name },
-                        track_image_url_high_quality: track.album.images?.first?.url,
-                        track_image_url_low_quality: track.album.images?.dropFirst().first?.url
-                    )
-                }
+                let response = try decode(SearchResponseTracksModel.self, from: data)
+                return response.tracks.items.map { $0.toModel() }
             }
         } catch {
             print(error)
@@ -222,7 +145,20 @@ fileprivate struct SpotifyAlbumModel: Decodable {
     let release_date_precision: String
     let type: String
     let uri: String
+    
+    func toModel() -> AlbumModel {
+        AlbumModel(
+            album_name: name,
+            album_artists: artists.map { $0.name },
+            album_id: id,
+            album_type: album_type,
+            album_release_date: release_date,
+            album_cover_url_high_quality: images?.first?.url,
+            album_cover_url_low_quality: images?.dropFirst().first?.url
+        )
+    }
 }
+
 fileprivate struct SpotifyAlbumTrackModel: Decodable {
     let artists: [SpotifyArtistModel]
     let disc_number: Int
@@ -235,7 +171,20 @@ fileprivate struct SpotifyAlbumTrackModel: Decodable {
     let type: String
     let uri: String
     let is_local: Bool
+    
+    func toModel(for album: AlbumModel) -> TrackModel {
+        TrackModel(
+            album_id: album.album_id,
+            track_id: id,
+            track_name: name,
+            track_index: track_number,
+            track_artists: artists.map { $0.name },
+            track_image_url_high_quality: album.album_cover_url_high_quality,
+            track_image_url_low_quality: album.album_cover_url_low_quality
+        )
+    }
 }
+
 fileprivate struct SpotifyArtistModel: Decodable {
     let id: String
     let name: String
@@ -243,6 +192,7 @@ fileprivate struct SpotifyArtistModel: Decodable {
     let type: String
     let uri: String
 }
+
 fileprivate struct SpotifyArtistFullModel: Decodable {
     let id: String
     let images: [SpotifyArtistImageModel]?
@@ -250,7 +200,17 @@ fileprivate struct SpotifyArtistFullModel: Decodable {
     let popularity: Int?
     let type: String
     let uri: String
+    
+    func toModel() -> ArtistModel {
+        ArtistModel(
+            artist_name: name,
+            artist_id: id,
+            artist_image_url_high_quality: images?.first?.url,
+            artist_image_url_low_quality: images?.dropFirst().first?.url
+        )
+    }
 }
+
 fileprivate struct SpotifyTrackModel: Decodable {
     let album: SpotifyTrackAlbumInfoModel
     let artists: [SpotifyArtistModel]
@@ -264,6 +224,18 @@ fileprivate struct SpotifyTrackModel: Decodable {
     let type: String
     let uri: String
     let is_local: Bool
+    
+    func toModel() -> TrackModel {
+        TrackModel(
+            album_id: album.id,
+            track_id: id,
+            track_name: name,
+            track_index: track_number,
+            track_artists: artists.map { $0.name },
+            track_image_url_high_quality: album.images?.first?.url,
+            track_image_url_low_quality: album.images?.dropFirst().first?.url
+        )
+    }
 }
 
 // MARK: Data Transfer Objects for Spotify API - Nested Structures

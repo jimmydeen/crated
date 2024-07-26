@@ -22,6 +22,6 @@ class TrackModel: NSObject, IdentifiableProtocol {
     var name: String { return track_name }
     var id: String { return track_id }
     var artists: [String]? { return track_artists }
-    var image_cover_url_high_quality: String? { return track_image_url_high_quality }
-    var image_cover_url_low_quality: String? { return track_image_url_low_quality }
+    var image_url_high_quality: String? { return track_image_url_high_quality }
+    var image_url_low_quality: String? { return track_image_url_low_quality }
 }

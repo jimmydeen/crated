@@ -30,7 +30,7 @@ import Observation
             for: query,
             ofType: segment,
             from: self.results.count,
-            to: self.results.count + 12
+            to: self.results.count + 20
         )
         self.results.append(contentsOf: result)
     }
