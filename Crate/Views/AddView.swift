@@ -1,19 +1,20 @@
 import SwiftUI
 
 struct AddView: View {
-    @StateObject private var viewModel = AddViewModel()
+    @State private var viewModel = SearchViewModel()
     
     var body: some View {
         NavigationStack {
             VStack {
                 ScrollView {
                     LazyVStack {
-                        ForEach(Array(viewModel.albums.enumerated()), id: \.offset) { index, album in
-                            SearchResultView(result: album)
-                                .padding(.horizontal)
+                        ForEach(viewModel.results, id: \.id) { result in
+                            SearchResultView(result: result)
                                 .onAppear {
-                                    if loadsNextBatch(atIndex: index) {
-                                        viewModel.fetchAlbums()
+                                    if result.id == viewModel.results.last?.id {
+                                        Task {
+                                            await viewModel.fetchResults()
+                                        }
                                     }
                                 }
                         }
@@ -23,10 +24,6 @@ struct AddView: View {
             .navigationTitle("Add Album")
             .searchable(text: $viewModel.query)
         }
-    }
-    
-    private func loadsNextBatch(atIndex index: Int) -> Bool {
-        return index == $viewModel.albums.count - 1
     }
 }
 

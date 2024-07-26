@@ -20,7 +20,7 @@ import Observation
 
     @MainActor
     public func fetchCover() async {
-        guard let urlString = album.album_image_url_hq,
+        guard let urlString = album.album_image_url_high_quality,
             let url = URL(string: urlString) else {
             return
         }

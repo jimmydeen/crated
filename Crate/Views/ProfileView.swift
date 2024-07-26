@@ -1,9 +1,9 @@
 import SwiftUI
 
-struct IView: View {
+struct ProfileView: View {
     var body: some View {
         VStack {
-            Text("I")
+            Text("Profile")
             Spacer()
         }
     }
