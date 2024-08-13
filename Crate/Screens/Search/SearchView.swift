@@ -4,39 +4,30 @@ public enum SearchSegment: String, CaseIterable {
     case Albums = "album"
     case Artists = "artist"
     case Tracks = "track"
+    
+    var stringValue: String {
+        return self.rawValue
+    }
 }
+
 
 struct SearchResultView: View {
     let result: IdentifiableProtocol
     
-    private let boxCornerRadius: CGFloat = 8
     private let boxBackgroundOpacity: CGFloat = 0.1
+    private let boxCornerRadius: CGFloat = 8
     private let boxPadding: CGFloat = 8
-    private let coverPlaceholderOpacity: CGFloat = 0.2
     private let coverSize: CGFloat = 60
     private let coverSpacingFromDetails: CGFloat = 12
     private let detailsSpacing: CGFloat = 6
     
     var body: some View {
         HStack(alignment: .center, spacing: coverSpacingFromDetails) {
-            Rectangle()
-                .fill(Colors.placeholderGray)
-                .frame(width: coverSize, height: coverSize)
-                .overlay {
-                    if let imageUrl = result.image_url_low_quality,
-                       let url = URL(string: imageUrl) {
-                        AsyncImage(url: url) { phase in
-                            switch phase {
-                            case .success(let image):
-                                image.resizable()
-                            case .failure, .empty:
-                                Rectangle().fill(.black.opacity(coverPlaceholderOpacity))
-                            @unknown default:
-                                Rectangle().fill(.black.opacity(coverPlaceholderOpacity))
-                            }
-                        }
-                    }
-                }
+            if let urlString = result.image_url_low_quality,
+               let url = URL(string: urlString) {
+                AsyncImageView(for: url)
+                    .frame(width: coverSize, height: coverSize)
+            }
             
             VStack(alignment: .leading) {
                 Spacer()

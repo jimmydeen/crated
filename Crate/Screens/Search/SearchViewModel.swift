@@ -26,12 +26,16 @@ import Observation
         await self.fetchResults()
     }
     @MainActor public func fetchResults() async {
-        let result = await SpotifyAPIService.retrieveSearch(
-            for: query,
-            ofType: segment,
-            from: self.results.count,
-            to: self.results.count + 20
-        )
-        self.results.append(contentsOf: result)
+        do {
+            let result = try await SpotifyAPIService.retrieveSearch(
+                for: query,
+                ofType: segment,
+                from: self.results.count,
+                to: self.results.count + 20
+            )
+            self.results.append(contentsOf: result)
+        } catch {
+            print(error)
+        }
     }
 }

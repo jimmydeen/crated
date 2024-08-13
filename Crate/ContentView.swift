@@ -14,6 +14,9 @@ struct ContentView: View {
 
 struct ContentViewPreview: PreviewProvider {
     static var previews: some View {
+        @State var userViewModel = SharedUserViewModel()
+        
         ContentView()
+            .environment(userViewModel)
     }
 }

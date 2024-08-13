@@ -2,14 +2,14 @@ import SwiftUI
 
 struct HomeAlbumContextView: View {
     @State var showingGradient: Bool = false
-    @Binding var viewModel: AlbumContextViewModel
+    @Binding var viewModel: AlbumViewModel
 
     private let albumDetailsOffsetNudgeVertical: CGFloat = 4
     private let albumTypePaddingNudgeLeading: CGFloat = 2
     private let cardCornerRadius: CGFloat = 8
     private let cardElementSpacing: CGFloat = 0
-    private let cardPaddingTop: CGFloat = UIScreen.main.bounds.height * 0.05
     private let cardPaddingInternal: CGFloat = 30
+    private let cardPaddingTop: CGFloat = UIScreen.main.bounds.height * 0.05
     private let coverCornerRadius: CGFloat = 4
     private let coverSize: CGFloat = UIScreen.main.bounds.width * 0.5
     private let gradientAnimationDuration: CGFloat = 1.2
@@ -80,81 +80,5 @@ struct HomeAlbumContextView: View {
                 showingGradient = true
             }
         }
-    }
-}
-
-struct HomeAlbumView: View {
-    @State var viewModel: AlbumContextViewModel
-    
-    var body: some View {
-        NavigationLink(destination: HomeAlbumContextView(viewModel: $viewModel)) {
-            ZStack {
-                Rectangle().fill(Colors.placeholderGray)
-                
-                if let cover = viewModel.cover {
-                    Image(uiImage: cover)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .clipped()
-                }
-            }
-        }
-        .onAppear {
-            Task {
-                await viewModel.fetchCover()
-            }
-        }
-    }
-}
-
-struct HomeView: View {
-    @State var viewModel: HomeViewModel = HomeViewModel()
-    
-    private let gridSpacing: CGFloat = UIScreen.main.bounds.width * 0.028
-    private let rowCellCount: Int = 3
-    
-    var body: some View {
-        NavigationView {
-            ScrollView {
-                LazyVGrid(
-                    columns: Array(
-                        repeating: GridItem(.flexible()),
-                        count: rowCellCount
-                    ),
-                    spacing: gridSpacing)
-                {
-                    ForEach(viewModel.albums, id: \.id) { album in
-                        HomeAlbumView(viewModel: AlbumContextViewModel(album: album))
-                            .frame(width: cellSize, height: cellSize)
-                            .onAppear {
-                                if album.id == viewModel.albums.last?.id {
-                                    Task {
-                                        await viewModel.fetchAlbums()
-                                    }
-                                }
-                            }
-                    }
-                }
-                .padding(.horizontal, gridSpacing)
-            }
-            .navigationTitle("New releases")
-        }
-        .onAppear {
-            Task {
-                await viewModel.fetchAlbums()
-            }
-        }
-    }
-    
-    private var cellSize: CGFloat {
-        let totalSpace = UIScreen.main.bounds.width - (gridSpacing * (CGFloat(rowCellCount) + 1))
-        let cellSize = totalSpace / CGFloat(rowCellCount)
-        return cellSize
-    }
-}
-
-struct HomeViewPreview: PreviewProvider {
-    static var previews: some View {
-        HomeView()
     }
 }

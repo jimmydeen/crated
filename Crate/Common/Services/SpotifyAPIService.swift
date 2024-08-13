@@ -10,15 +10,16 @@ class SpotifyAPIService {
     private static var tokenExpirationDate: Date?
     private static let urlSession = URLSession(configuration: .default)
     
-    // Authentication
     private static func authenticate() async throws -> String {
-        if let token = accessToken, let expirationDate = tokenExpirationDate, Date() < expirationDate {
+        if let token = accessToken,
+           let expirationDate = tokenExpirationDate,
+           Date() < expirationDate {
             return token
         }
         
         let authKey = "\(clientID):\(clientSecret)"
         guard let authData = authKey.data(using: .utf8) else {
-            throw SpotifyError.AuthenticationFailed
+            throw SpotifyAPIError.FailedToRetrieveAccessToken
         }
         let authString = authData.base64EncodedString()
         
@@ -31,13 +32,16 @@ class SpotifyAPIService {
         let (data, response) = try await urlSession.data(for: request)
         
         guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
-            throw SpotifyError.InvalidResponse
+            throw SpotifyAPIError.InvalidResponse
         }
         
-        guard let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+        guard let json = try JSONSerialization.jsonObject(
+            with: data,
+            options: []
+        ) as? [String: Any],
               let accessToken = json["access_token"] as? String,
               let expiresIn = json["expires_in"] as? TimeInterval else {
-            throw SpotifyError.AuthenticationFailed
+            throw SpotifyAPIError.FailedToRetrieveAccessToken
         }
         
         self.accessToken = accessToken
@@ -54,7 +58,7 @@ class SpotifyAPIService {
         
         let (data, response) = try await urlSession.data(for: request)
         guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
-            throw SpotifyError.InvalidResponse
+            throw SpotifyAPIError.InvalidResponse
         }
         return data
     }
@@ -63,52 +67,52 @@ class SpotifyAPIService {
         return try decoder.decode(type, from: data)
     }
     
-    static func retrieveLatestAlbums(from start: Int, to end: Int) async -> [AlbumModel] {
-        do {
-            let url = URL(string: "https://api.spotify.com/v1/browse/new-releases?country=\(searchRegion)&limit=\(end - start)&offset=\(start)")!
-            let data = try await retrieveData(from: url)
+    static func retrieveLatestAlbums(from start: Int, to end: Int) async throws -> [AlbumModel] {
+        let urlString = "https://api.spotify.com/v1/browse/new-releases?country=\(searchRegion)" +
+            "&limit=\(end - start)&offset=\(start)"
+        guard let url = URL(string: urlString) else {
+            throw SpotifyAPIError.InvalidURL
+        }
+        let data = try await retrieveData(from: url)
+        let response = try decode(SearchResponseAlbumsModel.self, from: data)
+        return response.albums.items.map { $0.toModel() }
+    }
+    static func retrieveTracks(for album: AlbumModel) async throws -> [TrackModel] {
+        let urlString = "https://api.spotify.com/v1/albums/\(album.album_id)/tracks"
+        guard let url = URL(string: urlString) else {
+            throw SpotifyAPIError.InvalidURL
+        }
+        let data = try await retrieveData(from: url)
+        let response = try decode(SpotifyAlbumTracksModel.self, from: data)
+        return response.items.map { $0.toModel(for: album) }
+    }
+    static func retrieveSearch(
+        for query: String,
+        ofType type: SearchSegment,
+        from start: Int,
+        to end: Int
+    ) async throws -> [IdentifiableProtocol] {
+        let urlString = "https://api.spotify.com/v1/search?q=\(query)&type=\(type.stringValue)" +
+            "&market=\(searchRegion)&limit=\(end - start)&offset=\(start)"
+        guard let url = URL(string: urlString) else {
+            throw SpotifyAPIError.InvalidURL
+        }
+        let data = try await retrieveData(from: url)
+        
+        switch type {
+        case .Albums:
             let response = try decode(SearchResponseAlbumsModel.self, from: data)
             return response.albums.items.map { $0.toModel() }
-        } catch {
-            print(error)
-            return []
-        }
-    }
-    static func retrieveTracks(for album: AlbumModel) async -> [TrackModel] {
-        do {
-            let url = URL(string: "https://api.spotify.com/v1/albums/\(album.album_id)/tracks")!
-            let data = try await retrieveData(from: url)
-            let response = try decode(SpotifyAlbumTracksModel.self, from: data)
-            return response.items.map { $0.toModel(for: album) }
-        } catch {
-            print(error)
-            return []
-        }
-    }
-    static func retrieveSearch(for query: String, ofType type: SearchSegment, from start: Int, to end: Int) async -> [IdentifiableProtocol] {
-        do {
-            let url = URL(string: "https://api.spotify.com/v1/search?q=\(query)&type=\(type.rawValue)&market=\(searchRegion)&limit=\(end - start)&offset=\(start)")!
-            let data = try await retrieveData(from: url)
-            
-            switch type {
-            case .Albums:
-                let response = try decode(SearchResponseAlbumsModel.self, from: data)
-                return response.albums.items.map { $0.toModel() }
-            case .Artists:
-                let response = try decode(SearchResponseArtistsModel.self, from: data)
-                return response.artists.items.map { $0.toModel() }
-            case .Tracks:
-                let response = try decode(SearchResponseTracksModel.self, from: data)
-                return response.tracks.items.map { $0.toModel() }
-            }
-        } catch {
-            print(error)
-            return []
+        case .Artists:
+            let response = try decode(SearchResponseArtistsModel.self, from: data)
+            return response.artists.items.map { $0.toModel() }
+        case .Tracks:
+            let response = try decode(SearchResponseTracksModel.self, from: data)
+            return response.tracks.items.map { $0.toModel() }
         }
     }
 }
 
-// MARK: Data Transfer Objects for Spotify API - Search Responses
 fileprivate struct SearchResponseAlbumsModel: Decodable {
     let albums: SpotifyAlbumsModel
 }
@@ -119,7 +123,6 @@ fileprivate struct SearchResponseTracksModel: Decodable {
     let tracks: SpotifyTracksModel
 }
 
-// MARK: Data Transfer Objects for Spotify API - Intermediate Keys
 fileprivate struct SpotifyAlbumsModel: Decodable {
     let items: [SpotifyAlbumModel]
 }
@@ -133,7 +136,6 @@ fileprivate struct SpotifyTracksModel: Decodable {
     let items: [SpotifyTrackModel]
 }
 
-// MARK: Data Transfer Objects for Spotify API - Object Models
 fileprivate struct SpotifyAlbumModel: Decodable {
     let album_type: String
     let artists: [SpotifyArtistModel]
@@ -154,7 +156,8 @@ fileprivate struct SpotifyAlbumModel: Decodable {
             album_type: album_type,
             album_release_date: release_date,
             album_cover_url_high_quality: images?.first?.url,
-            album_cover_url_low_quality: images?.dropFirst().first?.url
+            album_cover_url_low_quality: images?.dropFirst().first?.url,
+            album_spotify_link: "https://open.spotify.com/album/\(id)"
         )
     }
 }
@@ -238,7 +241,6 @@ fileprivate struct SpotifyTrackModel: Decodable {
     }
 }
 
-// MARK: Data Transfer Objects for Spotify API - Nested Structures
 fileprivate struct SpotifyTrackAlbumInfoModel: Decodable {
     let images: [SpotifyAlbumImageModel]?
     let id: String
