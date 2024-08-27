@@ -38,4 +38,8 @@ import Observation
             print(error)
         }
     }
+    @MainActor public func fetchAlbumFromTrack(for albumID: String) async -> AlbumModel? {
+        let album = try? await SpotifyAPIService.retrieveAlbum(for: albumID)
+        return album
+    }
 }

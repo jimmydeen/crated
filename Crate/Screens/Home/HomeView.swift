@@ -1,24 +1,24 @@
 import SwiftUI
+import Kingfisher
+
+struct ImagePlaceholderView: View {
+    var body: some View {
+        Rectangle().fill(Colors.placeholderGray)
+    }
+}
 
 struct HomeAlbumView: View {
-    @State var viewModel: AlbumViewModel
+    let album: AlbumModel
     
     var body: some View {
-        NavigationLink(destination: AlbumView(viewModel: $viewModel)) {
-            ZStack {
-                Rectangle().fill(Colors.placeholderGray)
-                
-                if let cover = viewModel.cover {
-                    Image(uiImage: cover)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .clipped()
-                }
-            }
-        }
-        .onAppear {
-            Task {
-                await viewModel.fetchCover()
+        NavigationLink(destination: AlbumView(viewModel: AlbumViewModel(album: album))) {
+            if let urlString = album.album_cover_url_high_quality,
+               let url = URL(string: urlString) {
+                KFImage(url)
+                    .resizable()
+                    .placeholder {
+                        ImagePlaceholderView()
+                    }
             }
         }
     }
@@ -41,7 +41,7 @@ struct HomeView: View {
                     spacing: gridSpacing)
                 {
                     ForEach(viewModel.albums, id: \.id) { album in
-                        HomeAlbumView(viewModel: AlbumViewModel(album: album))
+                        HomeAlbumView(album: album)
                             .frame(width: cellSize, height: cellSize)
                             .onAppear {
                                 if album.id == viewModel.albums.last?.id {
@@ -72,6 +72,9 @@ struct HomeView: View {
 
 struct HomeViewPreview: PreviewProvider {
     static var previews: some View {
+        @State var userViewModel = SharedUserViewModel()
+                      
         HomeView()
+            .environment(userViewModel)
     }
 }

@@ -26,6 +26,9 @@
 		651C284C2C47105B00FFE3A6 /* ActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C28352C47105B00FFE3A6 /* ActivityView.swift */; };
 		65306E632C548BBA00A2C622 /* ProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65306E622C548BBA00A2C622 /* ProfileViewModel.swift */; };
 		65306E652C54901E00A2C622 /* ProfilePictureEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65306E642C54901E00A2C622 /* ProfilePictureEditorView.swift */; };
+		6547C5372C7C6ABD00AB75FA /* ArtistViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6547C5362C7C6ABD00AB75FA /* ArtistViewModel.swift */; };
+		6547C53A2C7C92CC00AB75FA /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 6547C5392C7C92CC00AB75FA /* Kingfisher */; };
+		6547C53C2C7C933D00AB75FA /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 6547C53B2C7C933D00AB75FA /* Kingfisher */; };
 		655B901A2C69F1FA00E87065 /* SharedUserViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 655B90192C69F1FA00E87065 /* SharedUserViewModel.swift */; };
 		655B901C2C6A765D00E87065 /* HomeAlbumContextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 655B901B2C6A765D00E87065 /* HomeAlbumContextView.swift */; };
 		6564FAB82C53BE1D005C475D /* AddView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6564FAB62C53BE1D005C475D /* AddView.swift */; };
@@ -69,6 +72,7 @@
 		651C28352C47105B00FFE3A6 /* ActivityView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ActivityView.swift; sourceTree = "<group>"; };
 		65306E622C548BBA00A2C622 /* ProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewModel.swift; sourceTree = "<group>"; };
 		65306E642C54901E00A2C622 /* ProfilePictureEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilePictureEditorView.swift; sourceTree = "<group>"; };
+		6547C5362C7C6ABD00AB75FA /* ArtistViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistViewModel.swift; sourceTree = "<group>"; };
 		655B90192C69F1FA00E87065 /* SharedUserViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedUserViewModel.swift; sourceTree = "<group>"; };
 		655B901B2C6A765D00E87065 /* HomeAlbumContextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeAlbumContextView.swift; sourceTree = "<group>"; };
 		6564FAB62C53BE1D005C475D /* AddView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddView.swift; sourceTree = "<group>"; };
@@ -96,6 +100,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6547C53C2C7C933D00AB75FA /* Kingfisher in Frameworks */,
+				6547C53A2C7C92CC00AB75FA /* Kingfisher in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -279,6 +285,7 @@
 			isa = PBXGroup;
 			children = (
 				65923D412C662C0E007297BD /* ArtistView.swift */,
+				6547C5362C7C6ABD00AB75FA /* ArtistViewModel.swift */,
 			);
 			path = Artist;
 			sourceTree = "<group>";
@@ -344,6 +351,10 @@
 				Base,
 			);
 			mainGroup = 651C28032C470FF500FFE3A6;
+			packageReferences = (
+				6547C5382C7C92CC00AB75FA /* XCRemoteSwiftPackageReference "Kingfisher" */,
+				6547C53D2C7C93AC00AB75FA /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
 			productRefGroup = 651C280D2C470FF500FFE3A6 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -387,6 +398,7 @@
 				65923D442C662DF3007297BD /* AsyncImageView.swift in Sources */,
 				651C28412C47105B00FFE3A6 /* ArtistModel.swift in Sources */,
 				651C283E2C47105B00FFE3A6 /* HomeViewModel.swift in Sources */,
+				6547C5372C7C6ABD00AB75FA /* ArtistViewModel.swift in Sources */,
 				65A0D4D72C4FAE0F00246367 /* SearchView.swift in Sources */,
 				651C284C2C47105B00FFE3A6 /* ActivityView.swift in Sources */,
 				651C28492C47105B00FFE3A6 /* SpotifyAPIService.swift in Sources */,
@@ -622,6 +634,38 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		6547C5382C7C92CC00AB75FA /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.12.0;
+			};
+		};
+		6547C53D2C7C93AC00AB75FA /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		6547C5392C7C92CC00AB75FA /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6547C5382C7C92CC00AB75FA /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
+		};
+		6547C53B2C7C933D00AB75FA /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6547C5382C7C92CC00AB75FA /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 651C28042C470FF500FFE3A6 /* Project object */;
 }

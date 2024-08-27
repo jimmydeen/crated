@@ -20,9 +20,20 @@ class AlbumModel: NSObject, IdentifiableProtocol {
         self.album_cover_url_low_quality = album_cover_url_low_quality
         self.album_spotify_link = album_spotify_link
     }
+    static let empty = AlbumModel(
+        album_name: "Unknown Album",
+        album_artists: ["Unknown Artist"],
+        album_id: "",
+        album_type: "Unknown",
+        album_release_date: "",
+        album_cover_url_high_quality: nil,
+        album_cover_url_low_quality: nil,
+        album_spotify_link: ""
+    )
     
     var name: String { return album_name }
     var id: String { return album_id }
+    var type: SearchSegment { return SearchSegment.Albums }
     var artists: [String]? { return album_artists }
     var image_url_high_quality: String? { return album_cover_url_high_quality }
     var image_url_low_quality: String? { return album_cover_url_low_quality }

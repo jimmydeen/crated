@@ -1,10 +1,10 @@
 import SwiftUI
+import Kingfisher
 
 struct AlbumView: View {
     @Environment(SharedUserViewModel.self) private var userViewModel
-    @State private var isFavorite = false
-    @Binding var viewModel: AlbumViewModel
-    
+    @State var viewModel: AlbumViewModel
+
     private let coverPaddingBottom: CGFloat = 24
     private let coverSize: CGFloat = UIScreen.main.bounds.width * 0.5
     private let rowSpacing: CGFloat = 12
@@ -18,10 +18,16 @@ struct AlbumView: View {
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading) {
-                Image(uiImage: viewModel.cover!)
-                    .resizable()
-                    .frame(height: coverSize)
-                    .shadow(radius: shadowRadius)
+                if let urlString = viewModel.album.album_cover_url_high_quality,
+                   let url = URL(string: urlString) {
+                    KFImage(url)
+                        .resizable()
+                        .placeholder {
+                            ImagePlaceholderView()
+                        }
+                        .frame(height: coverSize)
+                        .shadow(radius: shadowRadius)
+                }
                 
                 HStack {
                     Text(viewModel.album.album_type.uppercased())
@@ -47,39 +53,35 @@ struct AlbumView: View {
                             .foregroundColor(.black.opacity(0.6))
                             .offset(y: -4)
                     }
+                    
                     Spacer()
                 }
                 .padding(.bottom, 6)
                 
-                HStack {
-                    Button(
-                        action: {
+                Button(
+                    action: {
+                        if userViewModel.user.user_favorites.contains(viewModel.album) {
+                            userViewModel.removeFromFavorites(viewModel.album)
+                        } else {
                             userViewModel.addToFavorites(viewModel.album)
-                            isFavorite.toggle()
-                        },
-                        label: {
-                            if isFavorite {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "xmark")
-                                    
-                                    Text("Remove from favorites")
-                                }
-                                .font(.system(size: 15))
-                            } else {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "plus")
-                                    
-                                    Text("Add to favorites")
-                                }
-                                .font(.system(size: 15))
-                            }
                         }
-                    )
-                }
+                    },
+                    label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: userViewModel.user.user_favorites.contains(viewModel.album) ? "xmark": "plus")
+                                .animation(.default)
+                            
+                            Text(userViewModel.user.user_favorites.contains(viewModel.album) ? "Remove from favorites": "Add to favorites")
+                                .animation(.default)
+                        }
+                        .font(.system(size: 15))
+                    }
+                )
                 .frame(width: coverSize)
             }
             .frame(width: coverSize)
-            .padding(.bottom, coverPaddingBottom - 2)
+            .padding(.vertical, coverPaddingBottom - 2)
+            .padding(.bottom, 30)
             
             VStack(alignment: .leading, spacing: rowsSpacing) {
                 ForEach(viewModel.tracks, id: \.self) { track in
@@ -103,7 +105,15 @@ struct AlbumView: View {
                         
                         Spacer()
                         
-                        Image(systemName: "star")
+                        Button(
+                            action: {
+                                
+                            },
+                            label: {
+                                Image(systemName: "heart")
+                                    .foregroundColor(.black)
+                            }
+                        )
                     }
                     .frame(height: 18)
                 }
@@ -122,11 +132,22 @@ struct AlbumView: View {
     }
 }
 
-struct AlbumViewPreview: PreviewProvider {
+struct AlbumView_Previews: PreviewProvider {
     static var previews: some View {
         @State var userViewModel = SharedUserViewModel()
         
-        HomeView()
-            .environment(userViewModel)
+        AlbumView(
+            viewModel: AlbumViewModel(album: AlbumModel(
+                album_name: "More Life",
+                album_artists: ["Drake"],
+                album_id: "1lXY618HWkwYKJWBRYR4MK",
+                album_type: "album",
+                album_release_date: "2017-03-18",
+                album_cover_url_high_quality: "https://i.scdn.co/image/ab67616d0000b2734f0fd9dad63977146e685700",
+                album_cover_url_low_quality: "https://i.scdn.co/image/ab67616d00001e024f0fd9dad63977146e685700",
+                album_spotify_link: "https://open.spotify.com/album/1lXY618HWkwYKJWBRYR4MK"
+            ))
+        )
+        .environment(userViewModel)
     }
 }

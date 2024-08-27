@@ -1,4 +1,5 @@
 import SwiftUI
+import Kingfisher
 
 public enum SearchSegment: String, CaseIterable {
     case Albums = "album"
@@ -25,7 +26,11 @@ struct SearchResultView: View {
         HStack(alignment: .center, spacing: coverSpacingFromDetails) {
             if let urlString = result.image_url_low_quality,
                let url = URL(string: urlString) {
-                AsyncImageView(for: url)
+                KFImage(url)
+                    .resizable()
+                    .placeholder {
+                        ImagePlaceholderView()
+                    }
                     .frame(width: coverSize, height: coverSize)
             }
             
@@ -65,14 +70,21 @@ struct SearchView: View {
             ScrollView {
                 LazyVStack {
                     ForEach(viewModel.results, id: \.id) { result in
-                        SearchResultView(result: result)
-                            .onAppear {
-                                if result.id == viewModel.results.last?.id {
-                                    Task {
-                                        await viewModel.fetchResults()
+                        NavigationLink(
+                            destination: {
+                                DestinationView(result: result)
+                            },
+                            label: {
+                                SearchResultView(result: result)
+                                    .onAppear {
+                                        if result.id == viewModel.results.last?.id {
+                                            Task {
+                                                await viewModel.fetchResults()
+                                            }
+                                        }
                                     }
-                                }
                             }
+                        )
                     }
                 }
                 .navigationTitle("Search")
@@ -86,10 +98,28 @@ struct SearchView: View {
             }
         }
     }
+    
+    @ViewBuilder private func DestinationView(result: IdentifiableProtocol) -> some View {
+        switch result.type {
+        case.Albums:
+            if let album = result as? AlbumModel {
+                AlbumView(viewModel: AlbumViewModel(album: album))
+            }
+        case.Artists:
+            if let artist = result as? ArtistModel {
+                ArtistView(viewModel: ArtistViewModel(artist: artist))
+            }
+        case.Tracks:
+            ImagePlaceholderView()
+        }
+    }
 }
 
 struct SearchViewPreview: PreviewProvider {
     static var previews: some View {
+        @State var userViewModel = SharedUserViewModel()
+
         SearchView()
+            .environment(userViewModel)
     }
 }

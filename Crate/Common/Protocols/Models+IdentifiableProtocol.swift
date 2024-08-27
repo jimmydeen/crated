@@ -3,6 +3,7 @@ import Foundation
 protocol IdentifiableProtocol {
     var name: String { get }
     var id: String { get }
+    var type: SearchSegment { get }
     var artists: [String]? { get }
     var image_url_high_quality: String? { get }
     var image_url_low_quality: String? { get }

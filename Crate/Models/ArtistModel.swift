@@ -15,6 +15,7 @@ class ArtistModel: NSObject, IdentifiableProtocol {
     
     var name: String { return artist_name }
     var id: String { return artist_id }
+    var type: SearchSegment { return SearchSegment.Artists }
     var artists: [String]? { return nil }
     var image_url_high_quality: String? { return artist_image_url_high_quality }
     var image_url_low_quality: String? { return artist_image_url_low_quality }
