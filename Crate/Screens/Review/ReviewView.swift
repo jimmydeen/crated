@@ -1,9 +1,9 @@
 import SwiftUI
 
-struct NewReviewView: View {
+struct ReviewView: View {
     @Environment(SharedUserViewModel.self) private var userViewModel
     @State var searchViewModel: SearchViewModel = SearchViewModel()
-    @State var viewModel: NewReviewViewModel = NewReviewViewModel()
+    @State var viewModel: ReviewViewModel = ReviewViewModel()
     
     var body: some View {
         VStack {
@@ -187,7 +187,7 @@ struct NewReviewView: View {
     }
 }
 
-struct NewReviewViewPreview: PreviewProvider {
+struct ReviewViewPreview: PreviewProvider {
     static var previews: some View {
         @State var userViewModel = SharedUserViewModel()
 

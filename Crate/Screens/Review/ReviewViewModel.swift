@@ -1,7 +1,7 @@
 import Foundation
 import Observation
 
-@Observable class NewReviewViewModel {
+@Observable class ReviewViewModel {
     var currentlyReviewedAlbum: AlbumModel?
     var isCreatingReview: Bool = false
     var newReviewTitle: String = ""

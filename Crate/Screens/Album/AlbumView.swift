@@ -61,9 +61,13 @@ struct AlbumView: View {
                 Button(
                     action: {
                         if userViewModel.user.user_favorites.contains(viewModel.album) {
-                            userViewModel.removeFromFavorites(viewModel.album)
+                            withAnimation {
+                                userViewModel.removeFromFavorites(viewModel.album)
+                            }
                         } else {
-                            userViewModel.addToFavorites(viewModel.album)
+                            withAnimation {
+                                userViewModel.addToFavorites(viewModel.album)
+                            }
                         }
                     },
                     label: {

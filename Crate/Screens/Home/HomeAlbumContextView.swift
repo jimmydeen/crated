@@ -30,7 +30,6 @@ struct HomeAlbumContextView: View {
                         )
                     }
                 }
-                .ignoresSafeArea(.all)
                 .animation(
                     .easeOut(duration: gradientAnimationDuration),
                     value: showingGradient
