@@ -214,7 +214,7 @@ struct AlbumView: View {
                                         .padding(.horizontal, 8)
                                         .padding(.vertical, 4)
                                         .background(
-                                            RoundedRectangle(cornerRadius: 16).fill(Color(red: 0.95, green: 0.95, blue: 0.95))
+                                            RoundedRectangle(cornerRadius: 16).fill(Colors.lightGray)
                                         )
                                     }
                                 )
@@ -251,7 +251,7 @@ struct AlbumView: View {
                                             .padding(.horizontal, 8)
                                             .padding(.vertical, 4)
                                             .background(
-                                                RoundedRectangle(cornerRadius: 16).fill(Color(red: 0.95, green: 0.95, blue: 0.95))
+                                                RoundedRectangle(cornerRadius: 16).fill(Colors.lightGray)
                                             )
                                         }
                                     )

@@ -114,7 +114,7 @@ struct SearchView: View {
                     .padding(.vertical, 6)
                     .background(
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(Color(red: 0.95, green: 0.95, blue: 0.95))
+                            .fill(Colors.lightGray)
                     )
                     
                     Picker("Segment", selection: self.$viewModel.segment) {

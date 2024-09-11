@@ -26,7 +26,7 @@ struct ActivityView: View {
                 .padding(.top, titlePaddingTop)
                 
                 VStack(alignment: .leading) {
-                    ForEach(Array(userViewModel.activities), id: \.id) { activity in
+                    ForEach(Array(userViewModel.activities).reversed(), id: \.id) { activity in
                         HStack(spacing: 0) {
                             Text("\(activityText(for: activity))")
                                 .font(.subheadline)
@@ -34,7 +34,7 @@ struct ActivityView: View {
                             Spacer()
                         }
                         .padding(6)
-                        .background(Color(red: 0.94, green: 0.94, blue: 0.94))
+                        .background(Colors.lightGray)
                     }
                 }
             }

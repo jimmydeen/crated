@@ -44,7 +44,7 @@ struct ListItemView: View {
         .padding(12)
         .background {
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(red: 0.95, green: 0.95, blue: 0.95))
+                .fill(Colors.lightGray)
         }
         .onTapGesture {
             self.selectedAlbum = album
