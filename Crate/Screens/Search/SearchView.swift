@@ -11,9 +11,8 @@ public enum SearchSegment: String, CaseIterable {
     }
 }
 
-
 struct SearchResultView: View {
-    let result: IdentifiableProtocol
+    let result: ResultProtocol
     
     private let boxBackgroundOpacity: CGFloat = 0.1
     private let boxCornerRadius: CGFloat = 8
@@ -23,103 +22,170 @@ struct SearchResultView: View {
     private let detailsSpacing: CGFloat = 6
     
     var body: some View {
-        HStack(alignment: .center, spacing: coverSpacingFromDetails) {
-            if let urlString = result.image_url_low_quality,
-               let url = URL(string: urlString) {
-                KFImage(url)
-                    .resizable()
-                    .placeholder {
-                        ImagePlaceholderView()
-                    }
-                    .frame(width: coverSize, height: coverSize)
-            }
+        HStack(alignment: .center, spacing: self.coverSpacingFromDetails) {
+            KFImage(URL(string: result.image_url_hq ?? ""))
+                .resizable()
+                .placeholder {
+                    CommonImagePlaceholderView()
+                }
+                .frame(width: self.coverSize, height: self.coverSize)
             
             VStack(alignment: .leading) {
                 Spacer()
                 
-                Text(result.name)
+                Text(self.result.name)
                 
-                if let artists = result.artists {
+                if self.result.artists != [] {
                     Spacer()
-                        .frame(height: detailsSpacing)
+                        .frame(height: self.detailsSpacing)
                     
-                    Text(artists.joined(separator: ", "))
+                    Text(self.result.artists.joined(separator: ", "))
                         .foregroundColor(.gray)
                 }
                 
                 Spacer()
             }
-            .frame(height: coverSize)
+            .frame(height: self.coverSize)
             .font(.footnote)
             
             Spacer()
         }
-        .padding(boxPadding)
+        .padding(self.boxPadding)
         .background(
-            RoundedRectangle(cornerRadius: boxCornerRadius)
-                .fill(Color.gray.opacity(boxBackgroundOpacity))
+            RoundedRectangle(cornerRadius: self.boxCornerRadius)
+                .fill(Color.gray.opacity(self.boxBackgroundOpacity))
         )
     }
 }
 
 struct SearchView: View {
+    @Environment(CommonUserViewModel.self) private var userViewModel
+    @State var album: AlbumModel?
+    @State var artist: ArtistModel?
+    @State var isDisplayingAlbum: Bool = false
+    @State var isDisplayingArtist: Bool = false
+    @State var isSearching: Bool = false
+    @State var isShowingTitle: Bool = true
     @State var viewModel: SearchViewModel = SearchViewModel()
     
+    private let titlePaddingTop: CGFloat = 84
+    
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                LazyVStack {
-                    ForEach(viewModel.results, id: \.id) { result in
-                        NavigationLink(
-                            destination: {
-                                DestinationView(result: result)
-                            },
-                            label: {
-                                SearchResultView(result: result)
-                                    .onAppear {
-                                        if result.id == viewModel.results.last?.id {
-                                            Task {
-                                                await viewModel.fetchResults()
-                                            }
+        ZStack {
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 6) {
+                    if isShowingTitle {
+                        Text("Search")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                    }
+                    
+                    HStack(spacing: 6) {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundColor(.gray)
+                        
+                        ZStack {
+                            if self.viewModel.query.isEmpty {
+                                HStack {
+                                    Text("Search")
+                                        .foregroundColor(.gray)
+                                    
+                                    Spacer()
+                                }
+                            }
+                            
+                            HStack {
+                                TextField("", text: self.$viewModel.query)
+                                    .autocapitalization(.none)
+                                    .foregroundColor(.black)
+                                    .onChange(of: viewModel.query) {
+                                        withAnimation {
+                                            self.isShowingTitle = false
                                         }
                                     }
+                                
+                                Spacer()
                             }
-                        )
+                        }
+                        
+                        Spacer()
+                    }
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 6)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color(red: 0.95, green: 0.95, blue: 0.95))
+                    )
+                    
+                    Picker("Segment", selection: self.$viewModel.segment) {
+                        Text("Albums").tag(SearchSegment.Albums)
+                        Text("Artists").tag(SearchSegment.Artists)
+                        Text("Tracks").tag(SearchSegment.Tracks)
+                    }
+                    .disabled(isShowingTitle)
+                    .opacity(isShowingTitle ? 0 : 1)
+                    .pickerStyle(.segmented)
+                    
+                    LazyVStack {
+                        ForEach(self.viewModel.results, id: \.id) { result in
+                            Button(
+                                action: {
+                                    self.destinationView(result: result)
+                                },
+                                label: {
+                                    SearchResultView(result: result)
+                                        .onAppear {
+                                            if result.id == self.viewModel.results.last?.id {
+                                                Task {
+                                                    await self.viewModel.fetchResults()
+                                                }
+                                            }
+                                        }
+                                }
+                            )
+                        }
                     }
                 }
-                .navigationTitle("Search")
-                .searchable(text: $viewModel.query)
-                .searchScopes($viewModel.segment) {
-                    Text("Albums").tag(SearchSegment.Albums)
-                    Text("Artists").tag(SearchSegment.Artists)
-                    Text("Tracks").tag(SearchSegment.Tracks)
-                }
-                .padding(.horizontal)
+                .padding(.top, self.titlePaddingTop)
+            }
+            .padding(.horizontal)
+            
+            if isDisplayingAlbum, let album = self.album {
+                AlbumView(
+                    album: album,
+                    displayBinding: self.$isDisplayingAlbum,
+                    rating: self.userViewModel.ratings[album.id] ?? 0
+                )
+                .transition(.move(edge: .trailing))
             }
         }
     }
     
-    @ViewBuilder private func DestinationView(result: IdentifiableProtocol) -> some View {
-        switch result.type {
-        case.Albums:
-            if let album = result as? AlbumModel {
-                AlbumView(viewModel: AlbumViewModel(album: album))
+    private func destinationView(result: ResultProtocol) {
+        if let album = result as? AlbumModel {
+            self.album = album
+            
+            withAnimation {
+                isDisplayingAlbum.toggle()
             }
-        case.Artists:
-            if let artist = result as? ArtistModel {
-                ArtistView(viewModel: ArtistViewModel(artist: artist))
+        } else if let artist = result as? ArtistModel {
+            self.artist = artist
+            
+            withAnimation {
+                isDisplayingArtist.toggle()
             }
-        case.Tracks:
-            ImagePlaceholderView()
+        } else {
+            return
         }
     }
 }
 
 struct SearchViewPreview: PreviewProvider {
     static var previews: some View {
-        @State var userViewModel = SharedUserViewModel()
+        @State var userViewModel = CommonUserViewModel(context: PersistenceController.shared.container.viewContext)
 
         SearchView()
             .environment(userViewModel)
+            .ignoresSafeArea(.all)
     }
 }

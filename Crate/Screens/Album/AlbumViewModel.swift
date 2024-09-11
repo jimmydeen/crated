@@ -2,6 +2,7 @@ import Foundation
 import UIKit
 import SwiftUI
 import Observation
+import CoreData
 
 @Observable class AlbumViewModel {
     var cover: UIImage?
@@ -18,7 +19,7 @@ import Observation
     }
 
     @MainActor public func fetchCover() async {
-        guard let urlString = album.album_cover_url_high_quality,
+        guard let urlString = self.album.image_url_hq,
             let url = URL(string: urlString) else {
             return
         }
@@ -43,18 +44,15 @@ import Observation
     }
     
     public func fetchGradient() {
-        guard cover != nil else {
-            return
+        if let cover = self.cover,
+           let colors = cover.getColors() {
+            var gradientColors: [Color] = []
+            gradientColors.append(Color(colors.primary).opacity(gradientOpacity))
+            gradientColors.append(Color(colors.background).opacity(gradientOpacity))
+            gradientColors = gradientColors.sorted { ColorUtilities.luminance(of: $0) < ColorUtilities.luminance(of: $1) }
+            gradientColors.append(.clear)
+            
+            self.gradient = Gradient(colors: gradientColors)
         }
-        guard let colors = cover!.getColors() else {
-            return
-        }
-        var gradientColors: [Color] = []
-        gradientColors.append(Color(colors.primary).opacity(gradientOpacity))
-        gradientColors.append(Color(colors.background).opacity(gradientOpacity))
-        gradientColors = gradientColors.sorted { ColorUtilities.luminance(of: $0) < ColorUtilities.luminance(of: $1) }
-        gradientColors.append(.clear)
-        
-        self.gradient = Gradient(colors: gradientColors)
     }
 }

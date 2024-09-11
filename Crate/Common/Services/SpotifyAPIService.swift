@@ -95,7 +95,7 @@ class SpotifyAPIService {
         return response.albums.items.map { $0.toModel() }
     }
     public static func retrieveTracks(for album: AlbumModel) async throws -> [TrackModel] {
-        let urlString = "https://api.spotify.com/v1/albums/\(album.album_id)/tracks"
+        let urlString = "https://api.spotify.com/v1/albums/\(album.id)/tracks"
         guard let url = URL(string: urlString) else {
             throw SpotifyAPIError.InvalidURL
         }
@@ -108,7 +108,7 @@ class SpotifyAPIService {
         ofType type: SearchSegment,
         from start: Int,
         to end: Int
-    ) async throws -> [IdentifiableProtocol] {
+    ) async throws -> [ResultProtocol] {
         let urlString = "https://api.spotify.com/v1/search?q=\(query)&type=\(type.stringValue)" +
             "&market=\(searchRegion)&limit=\(end - start)&offset=\(start)"
         guard let url = URL(string: urlString) else {
@@ -167,14 +167,14 @@ fileprivate struct SpotifyAlbumModel: Decodable {
     
     func toModel() -> AlbumModel {
         AlbumModel(
-            album_name: name,
-            album_artists: artists.map { $0.name },
-            album_id: id,
-            album_type: album_type,
-            album_release_date: release_date,
-            album_cover_url_high_quality: images?.first?.url,
-            album_cover_url_low_quality: images?.dropFirst().first?.url,
-            album_spotify_link: "https://open.spotify.com/album/\(id)"
+            name: name,
+            id: id,
+            artists: artists.map { $0.name },
+            type: album_type,
+            release_date: release_date,
+            spotify_link: "https://open.spotify.com/album/\(id)",
+            image_url_hq: images?.first?.url,
+            image_url_lq: images?.dropFirst().first?.url
         )
     }
 }
@@ -194,13 +194,13 @@ fileprivate struct SpotifyAlbumTrackModel: Decodable {
     
     func toModel(for album: AlbumModel) -> TrackModel {
         TrackModel(
-            album_id: album.album_id,
-            track_id: id,
-            track_name: name,
-            track_index: track_number,
-            track_artists: artists.map { $0.name },
-            track_image_url_high_quality: album.album_cover_url_high_quality,
-            track_image_url_low_quality: album.album_cover_url_low_quality
+            name: name,
+            album_id: album.id,
+            id: id,
+            index: track_number,
+            artists: artists.map { $0.name },
+            image_url_hq: album.image_url_hq,
+            image_url_lq: album.image_url_lq
         )
     }
 }
@@ -223,10 +223,11 @@ fileprivate struct SpotifyArtistFullModel: Decodable {
     
     func toModel() -> ArtistModel {
         ArtistModel(
-            artist_name: name,
-            artist_id: id,
-            artist_image_url_high_quality: images?.first?.url,
-            artist_image_url_low_quality: images?.dropFirst().first?.url
+            name: name,
+            id: id,
+            artists: [],
+            image_url_hq: images?.first?.url,
+            image_url_lq: images?.dropFirst().first?.url
         )
     }
 }
@@ -247,13 +248,13 @@ fileprivate struct SpotifyTrackModel: Decodable {
     
     func toModel() -> TrackModel {
         TrackModel(
+            name: name,
             album_id: album.id,
-            track_id: id,
-            track_name: name,
-            track_index: track_number,
-            track_artists: artists.map { $0.name },
-            track_image_url_high_quality: album.images?.first?.url,
-            track_image_url_low_quality: album.images?.dropFirst().first?.url
+            id: id,
+            index: track_number,
+            artists: artists.map { $0.name },
+            image_url_hq: album.images?.first?.url,
+            image_url_lq: album.images?.dropFirst().first?.url
         )
     }
 }

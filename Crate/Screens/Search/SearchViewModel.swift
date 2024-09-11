@@ -9,7 +9,7 @@ import Observation
             }
         }
     }
-    var results: [IdentifiableProtocol] = []
+    var results: [ResultProtocol] = []
     var segment = SearchSegment.Albums {
         didSet {
             Task {
