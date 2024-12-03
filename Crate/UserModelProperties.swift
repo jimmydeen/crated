@@ -9,6 +9,8 @@ extension UserModel {
     @NSManaged public var date_joined: Date
     @NSManaged public var id: UUID
     @NSManaged public var name: String
+    @NSManaged public var location_city: String?
+    @NSManaged public var location_country: String?
     @NSManaged public var user_profile: ProfileModel
 }
 

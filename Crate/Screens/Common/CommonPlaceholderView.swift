@@ -1,7 +1,6 @@
-import Foundation
 import SwiftUI
 
-struct CommonImagePlaceholderView: View {
+struct CommonPlaceholderView: View {
     var body: some View {
         Rectangle().fill(Colors.placeholderGray)
     }

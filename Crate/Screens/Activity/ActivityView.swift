@@ -8,43 +8,27 @@ enum ActivityType {
     case FriendAdded
 }
 
-struct ActivityView: View {
+struct ActivityEventView: View {
     @Environment(CommonUserViewModel.self) private var userViewModel
     
-    private let titlePaddingTop: CGFloat = 84
+    let activity: ActivityModel
+    
+    private let activityPadding: CGFloat = 6
     
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 6) {
-                HStack {
-                    Text("Activity")
-                    
-                    Spacer()
-                }
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .padding(.top, titlePaddingTop)
-                
-                VStack(alignment: .leading) {
-                    ForEach(Array(userViewModel.activities).reversed(), id: \.id) { activity in
-                        HStack(spacing: 0) {
-                            Text("\(activityText(for: activity))")
-                                .font(.subheadline)
-                            
-                            Spacer()
-                        }
-                        .padding(6)
-                        .background(Colors.lightGray)
-                    }
-                }
-            }
+        HStack(spacing: 0) {
+            Text(self.activityText)
+                .font(.subheadline)
+            
+            Spacer()
         }
-        .padding(.horizontal)
+        .padding(self.activityPadding)
+        .background(Colors.lightGray)
     }
     
-    private func activityText(for activity: ActivityModel) -> String {
-        let userText = activity.username == userViewModel.user!.name ? "You" : activity.username
-        let userPronoun = activity.username == userViewModel.user!.name ? "your" : "their"
+    private var activityText: String {
+        let userText = activity.username == self.userViewModel.user!.name ? "You" : activity.username
+        let userPronoun = activity.username == self.userViewModel.user!.name ? "your" : "their"
         
         switch activity.type {
             case.AlbumRating:
@@ -58,13 +42,47 @@ struct ActivityView: View {
     }
 }
 
+struct ActivityView: View {
+    @Environment(CommonUserViewModel.self) private var userViewModel
+    
+    private let paddingTop: CGFloat = 84
+    private let titlePaddingBottom: CGFloat = 6
+    
+    var body: some View {
+        ScrollView(showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 0) {
+                HStack {
+                    Text("Activity")
+                    
+                    Spacer()
+                }
+                .font(.largeTitle)
+                .fontWeight(.bold)
+                .padding(.bottom, self.titlePaddingBottom)
+                
+                VStack(alignment: .leading) {
+                    ForEach(Array(self.userViewModel.activities), id: \.id) { activity in
+                        ActivityEventView(activity: activity)
+                    }
+                }
+            }
+            .padding(.top, self.paddingTop)
+        }
+        .padding(.horizontal)
+        .background(Color.white)
+    }
+}
+
 struct ActivityViewPreview: PreviewProvider {
     static var previews: some View {
         let persistenceController = PersistenceController.shared
+        @State var displayViewModel = CommonDisplayViewModel()
         @State var userViewModel = CommonUserViewModel(context: persistenceController.container.viewContext)
         
-        ContentView()
+        TabsView()
+            .environment(displayViewModel)
             .environment(userViewModel)
             .environment(\.managedObjectContext, persistenceController.container.viewContext)
+            .ignoresSafeArea(.all)
     }
 }

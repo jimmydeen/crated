@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23222.3" systemVersion="24B5035e" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23507" systemVersion="24B5035e" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
     <entity name="ProfileModel" representedClassName="ProfileModel" syncable="YES">
-        <attribute name="favorites" attributeType="Transformable" valueTransformerName="" customClassName="NSSet"/>
+        <attribute name="favorites" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromData" customClassName="NSSet"/>
         <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
         <relationship name="profile_user" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="UserModel" inverseName="user_profile" inverseEntity="UserModel"/>
     </entity>
     <entity name="UserModel" representedClassName="UserModel" syncable="YES">
         <attribute name="date_joined" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="location_city" optional="YES" attributeType="String"/>
+        <attribute name="location_country" optional="YES" attributeType="String"/>
         <attribute name="name" attributeType="String"/>
         <relationship name="user_profile" maxCount="1" deletionRule="Nullify" destinationEntity="ProfileModel" inverseName="profile_user" inverseEntity="ProfileModel"/>
     </entity>

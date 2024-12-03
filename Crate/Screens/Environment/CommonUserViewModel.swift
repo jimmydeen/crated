@@ -1,12 +1,13 @@
-import Foundation
 import Observation
 import CoreData
 
 @Observable class CommonUserViewModel {
     private var context: NSManagedObjectContext
+    
     var activities: [ActivityModel] = []
     var likedTracks: [String: [String: Bool]] = [:]
     var ratings: [String: Double] = [:]
+    var isSignedIn: Bool = false
 
     init(context: NSManagedObjectContext) {
         self.context = context
@@ -39,17 +40,16 @@ import CoreData
         }
     }
     
-    public func addToActivities(_ activity: ActivityModel) {
+    public func addActivity(_ activity: ActivityModel) {
         activities.append(activity)
     }
-    public func addToFavorites(_ album: AlbumModel) {
+    public func addFavorite(_ album: AlbumModel) {
         if let user = self.user {
             let set = NSMutableSet(set: user.user_profile.favorites)
             set.add(album.id)
             user.user_profile.favorites = NSSet(set: set)
             
             let activity = ActivityModel(
-                id: UUID(),
                 username: user.name,
                 date: Date.now,
                 type: ActivityType.FavoriteAdd,
@@ -64,7 +64,13 @@ import CoreData
             }
         }
     }
-    public func favoriteContainsAlbum(_ album: AlbumModel) -> Bool {
+    public func addFriend(_ id: UUID) {
+        if let user = self.user {
+            let friendship = FriendshipModel(user_id_A: user.id, user_id_B: id)
+            
+        }
+    }
+    public func isAlbumFavorite(_ album: AlbumModel) -> Bool {
         if let user = self.user {
             let favorites = user.user_profile.favorites
             return favorites.contains(album.id)
@@ -79,7 +85,7 @@ import CoreData
             self.likedTracks[track.album_id]![track.id] = true
         }
     }
-    public func removeFromFavorites(_ album: AlbumModel) {
+    public func removeFavorite(_ album: AlbumModel) {
         if let user = self.user {
             let set = NSMutableSet(set: user.user_profile.favorites)
             set.remove(album.id)
@@ -92,7 +98,7 @@ import CoreData
                 type: ActivityType.FavoriteRemove,
                 album: album
             )
-            activities.append(activity)
+            activities.insert(activity, at: 0)
             
             do {
                 try self.context.save()

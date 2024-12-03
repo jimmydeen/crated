@@ -19,27 +19,25 @@ struct ProfileViewFavoriteAlbum: View {
             if let album = album {
                KFImage(URL(string: album.image_url_hq ?? ""))
                     .placeholder {
-                        CommonImagePlaceholderView()
+                        CommonPlaceholderView()
                     }
                     .resizable()
+                    .onTapGesture {
+                        self.selectedAlbum = album
+                        withAnimation {
+                            self.isDisplayingAlbum = true
+                        }
+                    }
             } else {
-                CommonImagePlaceholderView()
+                CommonPlaceholderView()
             }
         }
-        .onAppear {
-            Task {
-                do {
-                    let fetchedAlbum = try await SpotifyAPIService.retrieveAlbum(for: album_id)
-                    album = fetchedAlbum
-                } catch {
-                    print("Error fetching album: \(error)")
-                }
-            }
-        }
-        .onTapGesture {
-            self.selectedAlbum = album
-            withAnimation {
-                self.isDisplayingAlbum = true
+        .task {
+            do {
+                let fetchedAlbum = try await SpotifyAPIService.retrieveAlbum(for: album_id)
+                album = fetchedAlbum
+            } catch {
+                print("Error fetching album: \(error)")
             }
         }
     }
@@ -53,10 +51,20 @@ struct ProfileView: View {
     @State var album: AlbumModel?
     
     private let cellSize: CGFloat = (UIScreen.main.bounds.width * 0.888) / 3
+    private let detailsHeight: CGFloat = UIScreen.main.bounds.width * 0.216
+    private let detailsPaddingLeading: CGFloat = 2
+    private let detailsWidth: CGFloat = UIScreen.main.bounds.width * 0.5
+    private let fullDetailsPaddingHorizontal: CGFloat = 36
     private let gridSpacing: CGFloat = UIScreen.main.bounds.width * 0.028
+    private let interactionButtonsPaddingLeading: CGFloat = 4
+    private let interactionButtonsSpacing: CGFloat = 20
+    private let profilePicturePaddingTrailing: CGFloat = 10
     private let profilePictureSize: CGFloat = UIScreen.main.bounds.width * 0.24
     private let rowCellCount: Int = 3
+    private let suburbOffsetX: CGFloat = -4
+    private let suburbOffsetY: CGFloat = 1
     private let titlePaddingTop: CGFloat = 84
+    private let usernamePaddingBottom: CGFloat = 2
     
     var body: some View {
         ZStack {
@@ -68,7 +76,7 @@ struct ProfileView: View {
                                 Text("@\(user.name)")
                                     .font(.title3)
                                     .fontWeight(.semibold)
-                                    .padding(.bottom, 2)
+                                    .padding(.bottom, self.usernamePaddingBottom)
                                 
                                 HStack(alignment: .center) {
                                     Image(systemName: "mappin.and.ellipse")
@@ -76,15 +84,18 @@ struct ProfileView: View {
                                     
                                     Text("Melbourne, Victoria")
                                         .font(.subheadline)
-                                        .offset(x: -4, y: 1)
+                                        .offset(
+                                            x: self.suburbOffsetX,
+                                            y: self.suburbOffsetY
+                                        )
                                 }
                                 .fontWeight(.semibold)
                                 .foregroundColor(.gray)
-                                .padding(.leading, 2)
+                                .padding(.leading, self.detailsPaddingLeading)
                                 
                                 Spacer()
                                 
-                                HStack(spacing: 20) {
+                                HStack(spacing: self.interactionButtonsSpacing) {
                                     Button(
                                         action: { self.currentlyShowingFriendsPopup = true },
                                         label: {
@@ -105,22 +116,22 @@ struct ProfileView: View {
                                         }
                                     )
                                 }
-                                .padding(.leading, 4)
+                                .padding(.leading, self.interactionButtonsPaddingLeading)
                             }
                             .frame(
-                                width: UIScreen.main.bounds.width * 0.5,
-                                height: self.profilePictureSize * 0.9
+                                width: self.detailsWidth,
+                                height: self.detailsHeight
                             )
                             
                             Spacer()
                             
-                            CommonImagePlaceholderView()
+                            CommonPlaceholderView()
                                 .clipShape(Circle())
                                 .frame(width: self.profilePictureSize)
-                                .padding(.trailing, 10)
+                                .padding(.trailing, self.profilePicturePaddingTrailing)
                         }
                         .frame(height: self.profilePictureSize)
-                        .padding(.horizontal, 36)
+                        .padding(.horizontal, self.fullDetailsPaddingHorizontal)
                         
                         if let favoritesSet = user.user_profile.favorites as? Set<String>,
                            !favoritesSet.isEmpty {
@@ -133,26 +144,26 @@ struct ProfileView: View {
                             ) {
                                 ForEach(Array(favoritesSet), id: \.self) { favorite in
                                     ProfileViewFavoriteAlbum(
-                                        selectedAlbum: $album,
-                                        isDisplayingAlbum: $isDisplayingAlbum,
+                                        selectedAlbum: self.$album,
+                                        isDisplayingAlbum: self.$isDisplayingAlbum,
                                         album_id: favorite
                                     )
-                                    .frame(width: cellSize, height: cellSize)
+                                    .frame(width: self.cellSize, height: self.cellSize)
                                 }
                             }
                             .padding(.horizontal, self.gridSpacing)
-                            .padding(.top, 36)
+                            .padding(.top, self.fullDetailsPaddingHorizontal)
                         }
                     }
-                    .padding(.top, titlePaddingTop)
+                    .padding(.top, self.titlePaddingTop)
                 }
             }
             .zIndex(0)
             
-            if isDisplayingAlbum, let album = album {
+            if self.isDisplayingAlbum, let album = album {
                 AlbumView(
                     album: album,
-                    displayBinding: $isDisplayingAlbum,
+                    displayBinding: self.$isDisplayingAlbum,
                     rating: self.userViewModel.ratings[album.id] ?? 0
                 )
                 .transition(.move(edge: .trailing))

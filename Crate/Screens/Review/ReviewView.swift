@@ -6,6 +6,23 @@ struct ReviewView: View {
     @State var searchViewModel: SearchViewModel = SearchViewModel()
     @State var viewModel: ReviewViewModel = ReviewViewModel()
     
+    private let backButtonPaddingTrailing: CGFloat = 4
+    private let backButtonOffsetHorizontal: CGFloat = -12
+    private let cornerRadius: CGFloat = 24
+    private let coverPaddingTrailing: CGFloat = 12
+    private let coverSize: CGFloat = UIScreen.main.bounds.width * 0.24
+    private let frameHeightCondensed: CGFloat = UIScreen.main.bounds.height * 0.4
+    private let frameHeightExpanded: CGFloat = UIScreen.main.bounds.height * 0.7
+    private let frameWidth: CGFloat = UIScreen.main.bounds.width
+    private let headerPaddingTop: CGFloat = 36
+    private let headerPaddingLeading: CGFloat = 20
+    private let headerPaddingBottom: CGFloat = 8
+    private let spacing: CGFloat = 6
+    private let textBoxCornerRadius: CGFloat = 12
+    private let textBoxPaddingBottom: CGFloat = 12
+    private let textBoxPaddingHorizontal: CGFloat = 6
+    private let textBoxPaddingVertical: CGFloat = 6
+    
     var body: some View {
         VStack {
             Spacer()
@@ -20,14 +37,14 @@ struct ReviewView: View {
                                 }
                             },
                             label: {
-                                Image(systemName: "arrow.back")
+                                Image(systemName: "arrow.left")
                                     .font(.title)
                                     .fontWeight(.bold)
                                     .foregroundColor(.black)
-                                    .padding(.trailing, 4)
+                                    .padding(.trailing, self.backButtonPaddingTrailing)
                             }
                         )
-                        .transition(.opacity.combined(with: .offset(x: -12)))
+                        .transition(.opacity.combined(with: .offset(x: self.backButtonOffsetHorizontal)))
                     }
                     
                     Text("New Review")
@@ -36,13 +53,13 @@ struct ReviewView: View {
                     
                     Spacer()
                 }
-                .padding(.top, 36)
-                .padding(.leading, 20)
-                .padding(.bottom, 8)
+                .padding(.top, self.headerPaddingTop)
+                .padding(.leading, self.headerPaddingLeading)
+                .padding(.bottom, self.headerPaddingBottom)
                 
                 if !self.viewModel.isCreatingReview {
                     VStack(spacing: 0) {
-                        HStack(spacing: 6) {
+                        HStack(spacing: spacing) {
                             Image(systemName: "magnifyingglass")
                                 .foregroundColor(.gray)
                             
@@ -67,13 +84,12 @@ struct ReviewView: View {
                             
                             Spacer()
                         }
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 6)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(.gray.opacity(0.1)))
+                        .padding(.horizontal, self.textBoxPaddingHorizontal)
+                        .padding(.vertical, self.textBoxPaddingVertical)
+                        .background(Colors.lightGray)
+                        .cornerRadius(self.textBoxCornerRadius)
                         .padding(.horizontal)
-                        .padding(.bottom, 12)
+                        .padding(.bottom, self.textBoxPaddingBottom)
                         
                         ScrollView(showsIndicators: false) {
                             LazyVStack {
@@ -87,11 +103,9 @@ struct ReviewView: View {
                                         },
                                         label: {
                                             SearchResultView(result: result)
-                                                .onAppear {
-                                                    if result.id == self.searchViewModel.results.last?.id {
-                                                        Task {
-                                                            await self.searchViewModel.fetchResults()
-                                                        }
+                                                .if(result.id == self.searchViewModel.results.last?.id) { view in
+                                                    view.task {
+                                                        await self.searchViewModel.fetchResults()
                                                     }
                                                 }
                                         }
@@ -109,13 +123,10 @@ struct ReviewView: View {
                                 KFImage(URL(string: album.image_url_hq ?? ""))
                                     .resizable()
                                     .placeholder {
-                                        CommonImagePlaceholderView()
+                                        CommonPlaceholderView()
                                     }
-                                    .frame(
-                                        width: UIScreen.main.bounds.width * 0.24,
-                                        height: UIScreen.main.bounds.width * 0.24
-                                    )
-                                    .padding(.trailing, 12)
+                                    .frame(width: self.coverSize, height: self.coverSize)
+                                    .padding(.trailing, self.coverPaddingTrailing)
                                 
                                 VStack(alignment: .leading) {
                                     Text(album.name)
@@ -127,7 +138,7 @@ struct ReviewView: View {
                                 Spacer()
                             }
                             
-                            HStack(spacing: 6) {
+                            HStack(spacing: self.spacing) {
                                 ZStack {
                                     if self.viewModel.newReviewTitle.isEmpty {
                                         HStack {
@@ -149,14 +160,13 @@ struct ReviewView: View {
                                 
                                 Spacer()
                             }
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 6)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(.gray.opacity(0.1)))
-                            .padding(.bottom, 12)
+                            .padding(.horizontal, self.textBoxPaddingHorizontal)
+                            .padding(.vertical, self.textBoxPaddingVertical)
+                            .background(Colors.lightGray)
+                            .cornerRadius(self.textBoxCornerRadius)
+                            .padding(.bottom, self.textBoxPaddingBottom)
                             
-                            HStack(spacing: 6) {
+                            HStack(spacing: self.spacing) {
                                 ZStack {
                                     if self.viewModel.newReviewDescription.isEmpty {
                                         HStack {
@@ -178,12 +188,11 @@ struct ReviewView: View {
                                 
                                 Spacer()
                             }
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 6)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(.gray.opacity(0.1)))
-                            .padding(.bottom, 12)
+                            .padding(.horizontal, self.textBoxPaddingHorizontal)
+                            .padding(.vertical, self.textBoxPaddingVertical)
+                            .background(Colors.lightGray)
+                            .cornerRadius(self.textBoxCornerRadius)
+                            .padding(.bottom, self.textBoxPaddingBottom)
                             
                             Spacer()
                         }
@@ -192,33 +201,29 @@ struct ReviewView: View {
                     .transition(.move(edge: .trailing))
                 }
             }
-            .frame(height: self.currentFrameSize)
-            .background(
-                VStack {
-                    Spacer()
-                    
-                    UnevenRoundedRectangle(topLeadingRadius: 12, bottomLeadingRadius: 0, bottomTrailingRadius: 0, topTrailingRadius: 12, style: .circular)
-                        .fill(.white)
-                        .frame(height: self.currentFrameSize)
-                }
-            )
+            .frame(width: self.frameWidth, height: self.frameHeight)
+            .background(Color.white)
+            .cornerRadius(self.cornerRadius)
         }
     }
     
-    private var currentFrameSize: CGFloat {
+    private var frameHeight: CGFloat {
         if self.searchViewModel.query == "" {
-            return UIScreen.main.bounds.height * 0.4
+            return self.frameHeightCondensed
         } else {
-            return UIScreen.main.bounds.height * 0.7
+            return self.frameHeightExpanded
         }
     }
 }
 
 struct ReviewViewPreview: PreviewProvider {
     static var previews: some View {
+        @State var displayViewModel = CommonDisplayViewModel()
         @State var userViewModel = CommonUserViewModel(context: PersistenceController.shared.container.viewContext)
 
-        ContentView()
+        TabsView()
+            .environment(displayViewModel)
             .environment(userViewModel)
+            .ignoresSafeArea(.all)
     }
 }

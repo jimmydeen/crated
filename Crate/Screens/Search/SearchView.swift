@@ -26,7 +26,7 @@ struct SearchResultView: View {
             KFImage(URL(string: result.image_url_hq ?? ""))
                 .resizable()
                 .placeholder {
-                    CommonImagePlaceholderView()
+                    CommonPlaceholderView()
                 }
                 .frame(width: self.coverSize, height: self.coverSize)
             
@@ -74,7 +74,7 @@ struct SearchView: View {
         ZStack {
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 6) {
-                    if isShowingTitle {
+                    if self.isShowingTitle {
                         Text("Search")
                             .font(.largeTitle)
                             .fontWeight(.bold)
@@ -98,7 +98,7 @@ struct SearchView: View {
                                 TextField("", text: self.$viewModel.query)
                                     .autocapitalization(.none)
                                     .foregroundColor(.black)
-                                    .onChange(of: viewModel.query) {
+                                    .onChange(of: self.viewModel.query) {
                                         withAnimation {
                                             self.isShowingTitle = false
                                         }
@@ -122,8 +122,8 @@ struct SearchView: View {
                         Text("Artists").tag(SearchSegment.Artists)
                         Text("Tracks").tag(SearchSegment.Tracks)
                     }
-                    .disabled(isShowingTitle)
-                    .opacity(isShowingTitle ? 0 : 1)
+                    .disabled(self.isShowingTitle)
+                    .opacity(self.isShowingTitle ? 0 : 1)
                     .pickerStyle(.segmented)
                     
                     LazyVStack {
@@ -134,11 +134,9 @@ struct SearchView: View {
                                 },
                                 label: {
                                     SearchResultView(result: result)
-                                        .onAppear {
-                                            if result.id == self.viewModel.results.last?.id {
-                                                Task {
-                                                    await self.viewModel.fetchResults()
-                                                }
+                                        .if(result.id == self.viewModel.results.last?.id) { view in
+                                            view.task {
+                                                await self.viewModel.fetchResults()
                                             }
                                         }
                                 }

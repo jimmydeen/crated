@@ -11,6 +11,8 @@ struct ArtistView: View {
         _viewModel = State(wrappedValue: ArtistViewModel(artist: artist))
     }
     
+    private let imagePaddingBottom: CGFloat = 48
+    private let imageSize: CGFloat = UIScreen.main.bounds.width
     private let elementSpacing: CGFloat = 6
     private let gridSpacing: CGFloat = UIScreen.main.bounds.width * 0.034
     private let rowCellCount: Int = 2
@@ -18,17 +20,11 @@ struct ArtistView: View {
     var body: some View {
         ZStack {
             ScrollView {
-                VStack(spacing: elementSpacing) {
+                VStack(spacing: self.elementSpacing) {
                     KFImage(URL(string: self.viewModel.artist.image_url_hq ?? ""))
-                        .placeholder {
-                            CommonImagePlaceholderView()
-                        }
                         .resizable()
-                        .frame(
-                            width: UIScreen.main.bounds.width,
-                            height: UIScreen.main.bounds.width
-                        )
-                        .padding(.bottom, 48)
+                        .frame(width: self.imageSize, height: self.imageSize)
+                        .padding(.bottom, self.imagePaddingBottom)
                     
                     HStack {
                         Text(self.viewModel.artist.name)
@@ -50,7 +46,7 @@ struct ArtistView: View {
                             KFImage(URL(string: album.image_url_hq ?? ""))
                                 .resizable()
                                 .placeholder {
-                                    CommonImagePlaceholderView()
+                                    CommonPlaceholderView()
                                 }
                                 .frame(width: self.cellSize, height: self.cellSize)
                                 .onTapGesture {
@@ -64,23 +60,19 @@ struct ArtistView: View {
                     .padding(.horizontal, self.gridSpacing)
                 }
             }
-            .onAppear {
-                Task {
-                    if self.viewModel.albums.isEmpty {
-                        await self.viewModel.retrieveAlbums()
-                    }
+            .task {
+                if self.viewModel.albums.isEmpty {
+                    await self.viewModel.retrieveAlbums()
                 }
             }
-            .zIndex(0)
             
             if isDisplayingAlbum {
                 AlbumView(
                     album: album!,
-                    displayBinding: $isDisplayingAlbum,
+                    displayBinding: self.$isDisplayingAlbum,
                     rating: self.userViewModel.ratings[album!.id] ?? 0
                 )
                 .transition(.move(edge: .trailing))
-                .zIndex(1)
             }
         }
         .background(Color.white)
@@ -107,5 +99,6 @@ struct ArtistViewPreview: PreviewProvider {
             )
         )
         .environment(userViewModel)
+        .ignoresSafeArea(.all)
     }
 }

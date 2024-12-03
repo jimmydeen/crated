@@ -2,22 +2,22 @@ import Foundation
 
 class ListModel: NSObject {
     let name: String
-    let id: UUID
     let user_id: UUID
-    let albums: [AlbumModel]
     let image: String?
+    let albums: [AlbumModel]
+    let id: UUID
     
     init(
         name: String,
-        id: UUID,
         user_id: UUID,
+        image: String?,
         albums: [AlbumModel] = [],
-        image: String?
+        id: UUID = UUID()
     ) {
         self.name = name
-        self.id = id
         self.user_id = user_id
-        self.albums = albums
         self.image = image
+        self.albums = albums
+        self.id = id
     }
 }

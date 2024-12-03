@@ -42,7 +42,7 @@ struct AlbumTrackView: View {
             
             HStack {
                 Text("\(self.track.name)")
-        
+                
                 Spacer()
             }
             .frame(width: self.titleWidth)
@@ -62,46 +62,136 @@ struct AlbumTrackView: View {
 }
 
 struct AlbumView: View {
+    @Environment(CommonDisplayViewModel.self) private var displayViewModel
     @Environment(CommonUserViewModel.self) private var userViewModel
-    @State var isFavorite: Bool = false
-    @State var canRate: Bool = false
-    @State var isRating: Bool = false
-    @State var isShowingFavoriteButton: Bool = true
-    @State var rating: Double
-    @State var viewModel: AlbumViewModel
-    @State var showNotification: Bool = false
-    @Binding var displayBinding: Bool
+    
+    @State private var canRate: Bool = false
+    @State private var isFavorite: Bool = false
+    @State private var isRating: Bool = false
+    @State private var isShowingFavoriteButton: Bool = true
+    @State private var isTracksLoaded: Bool = false
+    @State private var rating: Double
+    @State private var viewModel: AlbumViewModel
+    @State private var showNotification: Bool = false
+    
+    @Binding var isDisplaying: Bool
     
     init(album: AlbumModel, displayBinding: Binding<Bool>, rating: Double) {
         _viewModel = State(wrappedValue: AlbumViewModel(album: album))
-        _displayBinding = displayBinding
+        _isDisplaying = displayBinding
         _rating = State(wrappedValue: rating)
     }
 
+    private let artistsOffsetVertical: CGFloat = -4
     private let backButtonSpacing: CGFloat = 5
+    private let backgroundScaleEffect: CGFloat = 1.2
     private let coverPaddingBottom: CGFloat = 24
     private let coverSize: CGFloat = UIScreen.main.bounds.width * 0.5
     private let elementSpacing: CGFloat = 10
-    private let isRatingCoverPaddingBottom: CGFloat = 12
-    private let isRatingCoverPaddingTop: CGFloat = 60
+    private let favoriteButtonCornerRadius: CGFloat = 16
+    private let favoriteButtonHeight: CGFloat = 22
+    private let favoriteButtonInternalPaddingHorizontal: CGFloat = 8
+    private let favoriteButtonInternalPaddingVertical: CGFloat = 4
+    private let favoriteButtonOffsetVertical: CGFloat = 1.2
+    private let favoritedRotation: CGFloat = 45
     private let notificationPaddingBottom: CGFloat = 50
     private let paddingLeading: CGFloat = UIScreen.main.bounds.width * 0.16
     private let paddingTop: CGFloat = 66
     private let paddingTrailing: CGFloat = UIScreen.main.bounds.width * 0.16
+    private let notificationDelay: CGFloat = 2.0
+    private let ratingAnimationDuration: CGFloat = 0.1
+    private let ratingCoverPaddingBottom: CGFloat = 12
+    private let ratingCoverPaddingTop: CGFloat = 60
     private let rowsSpacing: CGFloat = 14
     private let shadowRadius: CGFloat = 6
+    private let starHitboxHeight: CGFloat = 36
+    private let starHitboxWidth: CGFloat = 10
+    private let starImageSize: CGFloat = 20
+    private let starRatingCornerRadius: CGFloat = 18
+    private let starRatingHeight: CGFloat = 22
+    private let starRatingInternalPaddingHorizontal: CGFloat = 8
+    private let starRatingInternalPaddingVertical: CGFloat = 4
+    private let starRatingScaleEffect: CGFloat = 1.55
+    private let starRatingWidth: CGFloat = UIScreen.main.bounds.width * 0.275
+    private let tracklistDividerHeight: CGFloat = 1.0
+    private let tracklistPaddingBottom: CGFloat = UIScreen.main.bounds.height * 0.05
+    private let tracklistPaddingTop: CGFloat = UIScreen.main.bounds.width
+    private let trackWidth: CGFloat = 18
+    
+    private var starCount: Int = 5
     
     var body: some View {
         ZStack {
             ScrollView(showsIndicators: false) {
                 ZStack {
+                    VStack(alignment: .leading, spacing: self.rowsSpacing) {
+                        VStack(alignment: .leading, spacing: 0) {
+                            Color.clear
+                                .frame(height: self.tracklistPaddingTop)
+                            
+                            Text(self.viewModel.album.name)
+                                .font(.title)
+                                .fontWeight(.semibold)
+                            
+                            Text(self.viewModel.album.artists.joined(separator: ", "))
+                                .foregroundColor(.gray)
+                                .offset(y: self.artistsOffsetVertical)
+                        }
+                        .frame(width: self.coverSize)
+                        .opacity(0)
+                        
+                        if self.isTracksLoaded {
+                            ForEach(self.viewModel.tracks, id: \.self) { track in
+                                if track.id != self.viewModel.tracks[0].id {
+                                    Rectangle()
+                                        .foregroundColor(Colors.lightGray)
+                                        .frame(height: self.tracklistDividerHeight)
+                                }
+                                
+                                AlbumTrackView(isLiked: self.userViewModel.likedTracks[track.album_id] != nil ? true : false, track: track)
+                                    .frame(height: self.trackWidth)
+                            }
+                        }
+                        
+                        Spacer()
+                            .frame(height: self.tracklistPaddingBottom)
+                    }
+                    .padding(.leading, self.paddingLeading)
+                    .padding(.trailing, self.paddingTrailing)
+                    
+                    if self.isRating {
+                        CommonBackgroundBlur()
+                            .onTapGesture {
+                                if self.rating != 0 {
+                                    self.userViewModel.addActivity(
+                                        ActivityModel(
+                                            username: self.userViewModel.user!.name,
+                                            date: Date.now,
+                                            type: ActivityType.AlbumRating,
+                                            album: self.viewModel.album,
+                                            rating: self.rating
+                                        )
+                                    )
+                                    self.userViewModel.ratings[self.viewModel.album.id] = self.rating
+                                }
+                                self.canRate = false
+                                
+                                withAnimation {
+                                    self.displayViewModel.isDisplayingNavigation = true
+                                    self.isRating = false
+                                    self.isShowingFavoriteButton = true
+                                }
+                            }
+                            .scaleEffect(self.backgroundScaleEffect, anchor: .top)
+                    }
+                    
                     VStack {
                         if !self.isRating {
                             HStack {
                                 Button(
                                     action: {
                                         withAnimation {
-                                            self.displayBinding = false
+                                            self.isDisplaying = false
                                         }
                                     },
                                     label: {
@@ -116,27 +206,18 @@ struct AlbumView: View {
                                 
                                 Spacer()
                             }
-                            .frame(width: UIScreen.main.bounds.width * 0.5)
+                            .frame(width: self.coverSize)
                         }
                         
                         VStack(alignment: .leading, spacing: self.elementSpacing) {
                             KFImage(URL(string: self.viewModel.album.image_url_hq ?? ""))
-                                .placeholder {
-                                    CommonImagePlaceholderView()
-                                }
                                 .resizable()
                                 .frame(height: self.coverSize)
-                                .padding(
-                                    .top,
-                                    self.isRating ? self.isRatingCoverPaddingTop : 0
-                                )
-                                .padding(
-                                    .bottom,
-                                    self.isRating ? self.isRatingCoverPaddingBottom : 0
-                                )
+                                .padding(.top, self.isRating ? self.ratingCoverPaddingTop : 0)
+                                .padding(.bottom, self.isRating ? self.ratingCoverPaddingBottom : 0)
                                 .shadow(radius: self.shadowRadius)
                             
-                            if !isRating {
+                            if !self.isRating {
                                 HStack {
                                     Text(self.viewModel.album.type.uppercased())
                                     
@@ -149,15 +230,15 @@ struct AlbumView: View {
                                 .foregroundColor(.gray)
                             }
                             
-                            if !isRating {
+                            if !self.isRating {
                                 VStack(alignment: .leading, spacing: 0) {
                                     Text(self.viewModel.album.name)
                                         .font(.title)
                                         .fontWeight(.semibold)
                                     
                                     Text(self.viewModel.album.artists.joined(separator: ", "))
-                                        .foregroundColor(.black.opacity(0.6))
-                                        .offset(y: -4)
+                                        .foregroundColor(.gray)
+                                        .offset(y: self.artistsOffsetVertical)
                                 }
                             }
                             
@@ -169,8 +250,9 @@ struct AlbumView: View {
                                             
                                             withAnimation {
                                                 self.isRating = true
+                                                self.displayViewModel.isDisplayingNavigation = false
                                             }
-                                            withAnimation(.easeOut(duration: 0.1)) {
+                                            withAnimation(.easeOut(duration: self.ratingAnimationDuration)) {
                                                 self.isShowingFavoriteButton = false
                                             }
                                         }
@@ -178,30 +260,30 @@ struct AlbumView: View {
                                     label: {
                                         ZStack {
                                             HStack(spacing: 0) {
-                                                ForEach(1..<6) { count in
-                                                    Image(systemName: starImageName(count: count))
-                                                        .frame(width: 20, height: 20)
+                                                ForEach(1..<(self.starCount + 1), id: \.self) { count in
+                                                    Image(systemName: self.starImageName(count: count))
+                                                        .frame(width: self.starImageSize, height: self.starImageSize)
                                                 }
                                             }
                                             
                                             if self.canRate {
                                                 HStack(spacing: 0) {
-                                                    ForEach(1..<11) { count in
+                                                    ForEach(1..<(self.starCount + 1), id: \.self) { ratingValue in
                                                         Button(
                                                             action: {
-                                                                let newRating = Double(count) * 0.5
+                                                                let newRating = Double(ratingValue) * 0.5
                                                                 if self.rating == newRating {
                                                                     self.rating = 0
                                                                 } else {
-                                                                    self.rating = Double(count) * 0.5
+                                                                    self.rating = Double(ratingValue) * 0.5
                                                                 }
                                                             },
                                                             label: {
                                                                 Rectangle()
                                                                     .foregroundStyle(Color.clear)
                                                                     .frame(
-                                                                        width: 10,
-                                                                        height: 36
+                                                                        width: self.starHitboxWidth,
+                                                                        height: self.starHitboxHeight
                                                                     )
                                                             }
                                                         )
@@ -209,50 +291,43 @@ struct AlbumView: View {
                                                 }
                                             }
                                         }
-                                        .frame(height: 22)
-                                        .frame(width: self.coverSize * 0.55)
-                                        .padding(.horizontal, 8)
-                                        .padding(.vertical, 4)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 16).fill(Colors.lightGray)
-                                        )
+                                        .frame(height: self.starRatingHeight)
+                                        .frame(width: self.starRatingWidth)
+                                        .padding(.horizontal, self.starRatingInternalPaddingHorizontal)
+                                        .padding(.vertical, self.starRatingInternalPaddingVertical)
+                                        .background(Colors.lightGray)
+                                        .cornerRadius(self.starRatingCornerRadius)
                                     }
                                 )
-                                .scaleEffect(
-                                    self.isRating ? 1.55 : 1,
-                                    anchor: .topLeading
-                                )
+                                .scaleEffect(self.isRating ? self.starRatingScaleEffect : 1, anchor: .topLeading)
                                 
-                                if isShowingFavoriteButton {
+                                if self.isShowingFavoriteButton {
                                     Button(
                                         action: {
                                             withAnimation {
                                                 self.showNotification = true
                                                 if self.isFavorite {
-                                                    self.userViewModel.removeFromFavorites(viewModel.album)
+                                                    self.userViewModel.removeFavorite(self.viewModel.album)
                                                 } else {
-                                                    self.userViewModel.addToFavorites(viewModel.album)
+                                                    self.userViewModel.addFavorite(viewModel.album)
                                                 }
                                                 self.isFavorite.toggle()
                                                 
-                                                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                                DispatchQueue.main.asyncAfter(deadline: .now() + self.notificationDelay) {
                                                     self.showNotification = false
                                                 }
                                             }
                                         },
                                         label: {
-                                            HStack(spacing: 4) {
-                                                Image(systemName: "plus")
-                                                    .rotationEffect(.degrees(self.isFavorite ? 45 : 0))
-                                                    .offset(y: 1.2)
-                                            }
-                                            .fontWeight(.semibold)
-                                            .frame(height: 22)
-                                            .padding(.horizontal, 8)
-                                            .padding(.vertical, 4)
-                                            .background(
-                                                RoundedRectangle(cornerRadius: 16).fill(Colors.lightGray)
-                                            )
+                                            Image(systemName: "plus")
+                                                .rotationEffect(.degrees(self.isFavorite ? self.favoritedRotation : 0))
+                                                .offset(y: self.favoriteButtonOffsetVertical)
+                                                .fontWeight(.semibold)
+                                                .frame(height: self.favoriteButtonHeight)
+                                                .padding(.horizontal, self.favoriteButtonInternalPaddingHorizontal)
+                                                .padding(.vertical, self.favoriteButtonInternalPaddingVertical)
+                                                .background(Colors.lightGray)
+                                                .cornerRadius(self.favoriteButtonCornerRadius)
                                         }
                                     )
                                     .transition(.asymmetric(insertion: .identity, removal: .opacity))
@@ -262,99 +337,30 @@ struct AlbumView: View {
                             .foregroundColor(.blue)
                         }
                         .frame(width: self.coverSize)
-                        .padding(.bottom, 36)
                         
                         Spacer()
                     }
                     .padding(.top, self.paddingTop)
-                    .zIndex(2)
-                    
-                    if self.isRating {
-                        CommonDarkeningBlur()
-                            .onTapGesture {
-                                if self.rating != 0 {
-                                    self.userViewModel.addToActivities(
-                                        ActivityModel(
-                                            username: self.userViewModel.user!.name,
-                                            date: Date.now,
-                                            type: ActivityType.AlbumRating,
-                                            album: self.viewModel.album,
-                                            rating: self.rating
-                                        )
-                                    )
-                                    self.userViewModel.ratings[self.viewModel.album.id] = self.rating
-                                }
-                                self.canRate = false
-                                withAnimation {
-                                    self.isRating = false
-                                }
-                                withAnimation {
-                                    self.isShowingFavoriteButton = true
-                                }
-                            }
-                            .zIndex(1)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: self.rowsSpacing) {
-                        Spacer()
-                            .frame(height: self.coverSize * 2)
-                        
-                        VStack(alignment: .leading, spacing: 0) {
-                            Text(self.viewModel.album.name)
-                                .font(.title)
-                                .fontWeight(.semibold)
-                                .opacity(0)
-                            
-                            Text(self.viewModel.album.artists.joined(separator: ", "))
-                                .foregroundColor(.black.opacity(0.6))
-                                .offset(y: -4)
-                                .opacity(0)
-                        }
-                        .frame(width: self.coverSize)
-                        
-                        ForEach(self.viewModel.tracks, id: \.self) { track in
-                            if track.id != self.viewModel.tracks[0].id {
-                                Rectangle()
-                                    .foregroundColor(.gray.opacity(0.2))
-                                    .frame(height: 1)
-                            }
-                            
-                            if self.userViewModel.likedTracks[track.album_id] != nil {
-                                let isLiked = self.userViewModel.likedTracks[track.album_id]![track.id] ?? false
-                                AlbumTrackView(isLiked: isLiked, track: track)
-                                    .frame(height: 18)
-                            } else {
-                                AlbumTrackView(isLiked: false, track: track)
-                                    .frame(height: 18)
-                            }
-                        }
-                        
-                        Spacer()
-                            .frame(height: UIScreen.main.bounds.height * 0.05)
-                    }
-                    .padding(.leading, self.paddingLeading)
-                    .padding(.trailing, self.paddingTrailing)
-                    .zIndex(0)
                 }
             }
-            .onAppear {
-                self.isFavorite = userViewModel.favoriteContainsAlbum(viewModel.album)
-                Task {
-                    await self.viewModel.fetchTracks()
+            .task {
+                self.isFavorite = self.userViewModel.isAlbumFavorite(self.viewModel.album)
+                await self.viewModel.fetchTracks()
+                await MainActor.run {
+                    self.isTracksLoaded = true
                 }
             }
             
             if self.showNotification {
                 AlbumFavoriteNotificationView(
-                    isBeingAdded: self.userViewModel.favoriteContainsAlbum(
+                    isBeingAdded: self.userViewModel.isAlbumFavorite(
                         self.viewModel.album
                     )
                 )
-                .padding(.bottom, notificationPaddingBottom)
+                .padding(.bottom, self.notificationPaddingBottom)
             }
         }
-        .frame(maxWidth: UIScreen.main.bounds.width, maxHeight: UIScreen.main.bounds.height)
-        .background(Color.white)
+        .frame(width: UIScreen.main.bounds.width)
     }
     
     private func starImageName(count: Int) -> String {
@@ -370,6 +376,7 @@ struct AlbumView: View {
 
 struct AlbumView_Previews: PreviewProvider {
     static var previews: some View {
+        @State var displayViewModel = CommonDisplayViewModel()
         @State var userViewModel = CommonUserViewModel(context: PersistenceController.shared.container.viewContext)
         
         AlbumView(
@@ -386,6 +393,7 @@ struct AlbumView_Previews: PreviewProvider {
             displayBinding: .constant(true),
             rating: 0
         )
+        .environment(displayViewModel)
         .environment(userViewModel)
         .ignoresSafeArea(.all)
     }

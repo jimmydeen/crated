@@ -9,7 +9,15 @@ class TrackModel: NSObject, ResultProtocol {
     let image_url_hq: String?
     let image_url_lq: String?
     
-    init(name: String, album_id: String, id: String, index: Int, artists: [String], image_url_hq: String?, image_url_lq: String?) {
+    init(
+        name: String,
+        album_id: String,
+        id: String,
+        index: Int,
+        artists: [String],
+        image_url_hq: String?,
+        image_url_lq: String?
+    ) {
         self.name = name
         self.album_id = album_id
         self.id = id
