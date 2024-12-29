@@ -9,9 +9,8 @@ import Observation
 
     public func fetchNewReleases() async {
         do {
-            let response = try await SpotifyAPIService.retrieveLatestAlbums(
-                from: albums.count,
-                to: albums.count + 6
+            let response = try await SpotifyAPIService.fetchNewReleases(
+                range: albums.count..<albums.count+6
             )
             self.albums.append(contentsOf: response)
         } catch {

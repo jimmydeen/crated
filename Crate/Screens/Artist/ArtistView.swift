@@ -7,8 +7,11 @@ struct ArtistView: View {
     @State var isDisplayingAlbum: Bool = false
     @State var album: AlbumModel?
     
-    init(artist: ArtistModel) {
+    @Binding var isDisplaying: Bool
+    
+    init(artist: ArtistModel, displayBinding: Binding<Bool>) {
         _viewModel = State(wrappedValue: ArtistViewModel(artist: artist))
+        _isDisplaying = displayBinding
     }
     
     private let imagePaddingBottom: CGFloat = 48
@@ -70,7 +73,7 @@ struct ArtistView: View {
                 AlbumView(
                     album: album!,
                     displayBinding: self.$isDisplayingAlbum,
-                    rating: self.userViewModel.ratings[album!.id] ?? 0
+                    rating: self.userViewModel.albumRatings[album!.id] ?? 0
                 )
                 .transition(.move(edge: .trailing))
             }
@@ -96,7 +99,8 @@ struct ArtistViewPreview: PreviewProvider {
                 artists: [],
                 image_url_hq: "https://i.scdn.co/image/ab6761610000e5eb4293385d324db8558179afd9",
                 image_url_lq: "https://i.scdn.co/image/ab676161000051744293385d324db8558179afd9"
-            )
+            ),
+            displayBinding: .constant(true)
         )
         .environment(userViewModel)
         .ignoresSafeArea(.all)

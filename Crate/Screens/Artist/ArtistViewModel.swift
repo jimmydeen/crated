@@ -11,7 +11,7 @@ import Observation
     
     @MainActor public func retrieveAlbums() async {
         do {
-            let albums = try await SpotifyAPIService.retrieveAlbumsForArtist(for: artist.id)
+            let albums = try await SpotifyAPIService.fetchAlbumsByArtist(artistID: artist.id)
             self.albums = albums
         } catch {
             print(error)

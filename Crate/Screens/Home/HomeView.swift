@@ -1,53 +1,6 @@
 import SwiftUI
 import Kingfisher
 
-struct HomeAlbumView: View {
-    @Environment(CommonDisplayViewModel.self) private var displayViewModel
-    
-    @State private var changeNotifier: Bool = false
-    
-    @Binding var contextAlbum: AlbumModel?
-    @Binding var contextPosition: CGPoint
-    @Binding var isDisplayingContext: Bool
-    
-    let album: AlbumModel
-    
-    private let animationDuration: CGFloat = 0.2
-    private let pressDuration: CGFloat = 0.5
-    
-    var body: some View {
-        Button(action: { }) {
-            KFImage(URL(string: self.album.image_url_hq!))
-                .resizable()
-                .opacity(self.contextAlbum == self.album ? 0 : 1)
-        }
-        .disabled(self.isDisplayingContext)
-        .simultaneousGesture(
-            LongPressGesture(minimumDuration: self.pressDuration)
-                .onEnded { _ in
-                    self.contextAlbum = self.album
-                    self.changeNotifier.toggle()
-                    
-                    withAnimation(.easeInOut(duration: animationDuration)) {
-                        self.displayViewModel.isDisplayingNavigation = false
-                        self.isDisplayingContext = true
-                    }
-                }
-        )
-        .background(
-            GeometryReader { geometry in
-                Color.clear
-                    .onChange(of: self.changeNotifier) {
-                        if self.contextAlbum == self.album {
-                            let frame = geometry.frame(in: .global)
-                            self.contextPosition = CGPoint(x: frame.minX, y: frame.minY)
-                        }
-                    }
-            }
-        )
-    }
-}
-
 struct HomeView: View {
     @Environment(CommonDisplayViewModel.self) private var displayViewModel
     @Environment(CommonUserViewModel.self) private var userViewModel
@@ -66,6 +19,8 @@ struct HomeView: View {
     @State private var auxiliaryContextRemoval: Bool = false
     @State private var userMarqueeBackgroundY: CGFloat = -16
     @State private var viewModel: HomeViewModel = HomeViewModel()
+    
+    @Binding var isShowingBackgroundBlur: Bool
     
     private let albumSize: CGFloat = UIScreen.main.bounds.width * 0.286
     private let albumSpacing: CGFloat = UIScreen.main.bounds.width * 0.0286
@@ -338,7 +293,7 @@ struct HomeView: View {
                         AlbumView(
                             album: self.album!,
                             displayBinding: self.$isDisplayingAlbum,
-                            rating: self.userViewModel.ratings[self.album!.id] ?? 0
+                            rating: self.userViewModel.albumRatings[self.album!.id] ?? 0
                         )
                     }
                     .transition(.move(edge: .trailing))
@@ -350,7 +305,7 @@ struct HomeView: View {
                         AlbumView(
                             album: self.album!,
                             displayBinding: self.$isDisplayingAlbum,
-                            rating: self.userViewModel.ratings[self.album!.id] ?? 0
+                            rating: self.userViewModel.albumRatings[self.album!.id] ?? 0
                         )
                     }
                     .transition(.move(edge: .trailing))
@@ -394,6 +349,53 @@ struct HomeView: View {
         } else {
             return 40
         }
+    }
+}
+
+struct HomeAlbumView: View {
+    @Environment(CommonDisplayViewModel.self) private var displayViewModel
+    
+    @State private var changeNotifier: Bool = false
+    
+    @Binding var contextAlbum: AlbumModel?
+    @Binding var contextPosition: CGPoint
+    @Binding var isDisplayingContext: Bool
+    
+    let album: AlbumModel
+    
+    private let animationDuration: CGFloat = 0.2
+    private let pressDuration: CGFloat = 0.5
+    
+    var body: some View {
+        Button(action: { }) {
+            KFImage(URL(string: self.album.image_url_hq!))
+                .resizable()
+                .opacity(self.contextAlbum == self.album ? 0 : 1)
+        }
+        .disabled(self.isDisplayingContext)
+        .simultaneousGesture(
+            LongPressGesture(minimumDuration: self.pressDuration)
+                .onEnded { _ in
+                    self.contextAlbum = self.album
+                    self.changeNotifier.toggle()
+                    
+                    withAnimation(.easeInOut(duration: animationDuration)) {
+                        self.displayViewModel.isDisplayingNavigation = false
+                        self.isDisplayingContext = true
+                    }
+                }
+        )
+        .background(
+            GeometryReader { geometry in
+                Color.clear
+                    .onChange(of: self.changeNotifier) {
+                        if self.contextAlbum == self.album {
+                            let frame = geometry.frame(in: .global)
+                            self.contextPosition = CGPoint(x: frame.minX, y: frame.minY)
+                        }
+                    }
+            }
+        )
     }
 }
 

@@ -66,7 +66,7 @@ class SpotifyAPIService {
         return try decoder.decode(type, from: data)
     }
     
-    public static func retrieveAlbum(for albumID: String) async throws -> AlbumModel {
+    public static func fetchAlbumDetails(albumID: String) async throws -> AlbumModel {
         let urlString = "https://api.spotify.com/v1/albums/\(albumID)"
         guard let url = URL(string: urlString) else {
             throw SpotifyAPIError.InvalidURL
@@ -75,7 +75,7 @@ class SpotifyAPIService {
         let response = try decode(SpotifyAlbumModel.self, from: data)
         return response.toModel()
     }
-    public static func retrieveAlbumsForArtist(for artistID: String) async throws -> [AlbumModel] {
+    public static func fetchAlbumsByArtist(artistID: String) async throws -> [AlbumModel] {
         let urlString = "https://api.spotify.com/v1/artists/\(artistID)/albums"
         guard let url = URL(string: urlString) else {
             throw SpotifyAPIError.InvalidURL
@@ -84,9 +84,9 @@ class SpotifyAPIService {
         let response = try decode(SpotifyAlbumsModel.self, from: data)
         return response.items.map { $0.toModel() }
     }
-    public static func retrieveLatestAlbums(from start: Int, to end: Int) async throws -> [AlbumModel] {
+    public static func fetchNewReleases(range: Range<Int>) async throws -> [AlbumModel] {
         let urlString = "https://api.spotify.com/v1/browse/new-releases?country=\(searchRegion)" +
-            "&limit=\(end - start)&offset=\(start)"
+        "&limit=\(range.upperBound)&offset=\(range.lowerBound)"
         guard let url = URL(string: urlString) else {
             throw SpotifyAPIError.InvalidURL
         }
@@ -94,7 +94,7 @@ class SpotifyAPIService {
         let response = try decode(SearchResponseAlbumsModel.self, from: data)
         return response.albums.items.map { $0.toModel() }
     }
-    public static func retrieveTracks(for album: AlbumModel) async throws -> [TrackModel] {
+    public static func fetchTracks(album: AlbumModel) async throws -> [TrackModel] {
         let urlString = "https://api.spotify.com/v1/albums/\(album.id)/tracks"
         guard let url = URL(string: urlString) else {
             throw SpotifyAPIError.InvalidURL
@@ -103,14 +103,13 @@ class SpotifyAPIService {
         let response = try decode(SpotifyAlbumTracksModel.self, from: data)
         return response.items.map { $0.toModel(for: album) }
     }
-    public static func retrieveSearch(
-        for query: String,
-        ofType type: SearchSegment,
-        from start: Int,
-        to end: Int
+    public static func performSearch(
+        query: String,
+        type: SearchSegment,
+        range: Range<Int>
     ) async throws -> [ResultProtocol] {
         let urlString = "https://api.spotify.com/v1/search?q=\(query)&type=\(type.stringValue)" +
-            "&market=\(searchRegion)&limit=\(end - start)&offset=\(start)"
+        "&market=\(searchRegion)&limit=\(range.upperBound)&offset=\(range.lowerBound)"
         guard let url = URL(string: urlString) else {
             throw SpotifyAPIError.InvalidURL
         }

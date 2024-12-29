@@ -34,7 +34,7 @@ struct ProfileViewFavoriteAlbum: View {
         }
         .task {
             do {
-                let fetchedAlbum = try await SpotifyAPIService.retrieveAlbum(for: album_id)
+                let fetchedAlbum = try await SpotifyAPIService.fetchAlbumDetails(albumID: album_id)
                 album = fetchedAlbum
             } catch {
                 print("Error fetching album: \(error)")
@@ -164,7 +164,7 @@ struct ProfileView: View {
                 AlbumView(
                     album: album,
                     displayBinding: self.$isDisplayingAlbum,
-                    rating: self.userViewModel.ratings[album.id] ?? 0
+                    rating: self.userViewModel.albumRatings[album.id] ?? 0
                 )
                 .transition(.move(edge: .trailing))
                 .zIndex(1)

@@ -5,18 +5,23 @@ import CoreData
     private var context: NSManagedObjectContext
     
     var activities: [ActivityModel] = []
-    var likedTracks: [String: [String: Bool]] = [:]
-    var ratings: [String: Double] = [:]
+    var albumRatings: [String: Double] = [:]
+    var likedTracksByAlbum: [String: [String: Bool]] = [:]
     var isSignedIn: Bool = false
 
     init(context: NSManagedObjectContext) {
         self.context = context
     }
+    
+    private var cachedUser: UserModel?
 
     public var user: UserModel? {
+        if let cachedUser = cachedUser {
+            return cachedUser
+        }
         let userFetchRequest = UserModel.fetchRequest()
-        
         if let user = try? context.fetch(userFetchRequest).first {
+            self.cachedUser = user
             return user
         } else {
             let profile = ProfileModel(context: context)
@@ -36,41 +41,35 @@ import CoreData
                 print(error)
                 return nil
             }
+            self.cachedUser = user
             return user
         }
     }
     
-    public func addActivity(_ activity: ActivityModel) {
+    public func addUserActivity(_ activity: ActivityModel) {
         activities.append(activity)
     }
-    public func addFavorite(_ album: AlbumModel) {
-        if let user = self.user {
-            let set = NSMutableSet(set: user.user_profile.favorites)
-            set.add(album.id)
-            user.user_profile.favorites = NSSet(set: set)
+    public func addAlbumToFavorites(_ album: AlbumModel) {
+        guard let user = self.user else { return }
+        var favorites = Set(user.user_profile.favorites.compactMap { $0 as? String })
+        favorites.insert(album.id)
+        user.user_profile.favorites = NSSet(array: favorites.map { $0 })
             
-            let activity = ActivityModel(
-                username: user.name,
-                date: Date.now,
-                type: ActivityType.FavoriteAdd,
-                album: album
-            )
-            activities.append(activity)
-            
-            do {
-                try self.context.save()
-            } catch {
-                print(error)
-            }
+        let activity = ActivityModel(
+            username: user.name,
+            date: Date.now,
+            type: ActivityType.FavoriteAdd,
+            album: album
+        )
+        activities.append(activity)
+        
+        do {
+            try self.context.save()
+        } catch {
+            print(error)
         }
     }
-    public func addFriend(_ id: UUID) {
-        if let user = self.user {
-            let friendship = FriendshipModel(user_id_A: user.id, user_id_B: id)
-            
-        }
-    }
-    public func isAlbumFavorite(_ album: AlbumModel) -> Bool {
+    public func isAlbumFavorite(album: AlbumModel) -> Bool {
         if let user = self.user {
             let favorites = user.user_profile.favorites
             return favorites.contains(album.id)
@@ -78,14 +77,10 @@ import CoreData
             return false
         }
     }
-    public func likeTrack(_ track: TrackModel) {
-        if self.likedTracks[track.album_id] == nil {
-            self.likedTracks[track.album_id] = [track.id: true]
-        } else {
-            self.likedTracks[track.album_id]![track.id] = true
-        }
+    public func likeTrackInAlbum(track: TrackModel) {
+        self.likedTracksByAlbum[track.album_id, default: [:]][track.id] = true
     }
-    public func removeFavorite(_ album: AlbumModel) {
+    public func removeAlbumFromFavorites(album: AlbumModel) {
         if let user = self.user {
             let set = NSMutableSet(set: user.user_profile.favorites)
             set.remove(album.id)
@@ -108,11 +103,11 @@ import CoreData
         }
     }
     public func changeAlbumRating(for album: AlbumModel, to rating: Double) {
-        self.ratings[album.id] = rating
+        self.albumRatings[album.id] = rating
     }
-    public func unlikeTrack(_ track: TrackModel) {
-        if self.likedTracks[track.album_id] != nil {
-            self.likedTracks[track.album_id]![track.id] = nil
+    public func unlikeTrackInAlbum(track: TrackModel) {
+        if self.likedTracksByAlbum[track.album_id] != nil {
+            self.likedTracksByAlbum[track.album_id]![track.id] = nil
         }
     }
 }

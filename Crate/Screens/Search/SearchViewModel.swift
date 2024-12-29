@@ -27,11 +27,10 @@ import Observation
     }
     @MainActor public func fetchResults() async {
         do {
-            let result = try await SpotifyAPIService.retrieveSearch(
-                for: self.query,
-                ofType: self.segment,
-                from: self.results.count,
-                to: self.results.count + 20
+            let result = try await SpotifyAPIService.performSearch(
+                query: self.query,
+                type: self.segment,
+                range: self.results.count..<self.results.count + 20
             )
             self.results.append(contentsOf: result)
         } catch {
@@ -39,7 +38,7 @@ import Observation
         }
     }
     @MainActor public func fetchAlbumFromTrack(for albumID: String) async -> AlbumModel? {
-        let album = try? await SpotifyAPIService.retrieveAlbum(for: albumID)
+        let album = try? await SpotifyAPIService.fetchAlbumDetails(albumID: albumID)
         return album
     }
 }

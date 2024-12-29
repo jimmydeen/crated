@@ -149,12 +149,27 @@ struct SearchView: View {
             .padding(.horizontal)
             
             if isDisplayingAlbum, let album = self.album {
-                AlbumView(
-                    album: album,
-                    displayBinding: self.$isDisplayingAlbum,
-                    rating: self.userViewModel.ratings[album.id] ?? 0
-                )
+                ZStack {
+                    Color.white
+                    
+                    AlbumView(
+                        album: album,
+                        displayBinding: self.$isDisplayingAlbum,
+                        rating: self.userViewModel.albumRatings[album.id] ?? 0
+                    )
+                }
                 .transition(.move(edge: .trailing))
+            }
+            
+            if self.isDisplayingArtist, let artist = self.artist {
+                ZStack {
+                    Color.white
+                    
+                    ArtistView(
+                        artist: artist,
+                        displayBinding: self.$isDisplayingArtist
+                    )
+                }
             }
         }
     }

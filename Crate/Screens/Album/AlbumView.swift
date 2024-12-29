@@ -50,7 +50,7 @@ struct AlbumTrackView: View {
             Button(
                 action: {
                     self.isLiked.toggle()
-                    self.userViewModel.likeTrack(track)
+                    self.userViewModel.likeTrackInAlbum(track: track)
                 },
                 label: {
                     Image(systemName: self.isLiked ? "heart.fill" : "heart")
@@ -148,7 +148,7 @@ struct AlbumView: View {
                                         .frame(height: self.tracklistDividerHeight)
                                 }
                                 
-                                AlbumTrackView(isLiked: self.userViewModel.likedTracks[track.album_id] != nil ? true : false, track: track)
+                                AlbumTrackView(isLiked: self.userViewModel.likedTracksByAlbum[track.album_id] != nil ? true : false, track: track)
                                     .frame(height: self.trackWidth)
                             }
                         }
@@ -163,7 +163,7 @@ struct AlbumView: View {
                         CommonBackgroundBlur()
                             .onTapGesture {
                                 if self.rating != 0 {
-                                    self.userViewModel.addActivity(
+                                    self.userViewModel.addUserActivity(
                                         ActivityModel(
                                             username: self.userViewModel.user!.name,
                                             date: Date.now,
@@ -172,7 +172,7 @@ struct AlbumView: View {
                                             rating: self.rating
                                         )
                                     )
-                                    self.userViewModel.ratings[self.viewModel.album.id] = self.rating
+                                    self.userViewModel.albumRatings[self.viewModel.album.id] = self.rating
                                 }
                                 self.canRate = false
                                 
@@ -307,9 +307,9 @@ struct AlbumView: View {
                                             withAnimation {
                                                 self.showNotification = true
                                                 if self.isFavorite {
-                                                    self.userViewModel.removeFavorite(self.viewModel.album)
+                                                    self.userViewModel.removeAlbumFromFavorites(album: self.viewModel.album)
                                                 } else {
-                                                    self.userViewModel.addFavorite(viewModel.album)
+                                                    self.userViewModel.addAlbumToFavorites(viewModel.album)
                                                 }
                                                 self.isFavorite.toggle()
                                                 
@@ -344,7 +344,7 @@ struct AlbumView: View {
                 }
             }
             .task {
-                self.isFavorite = self.userViewModel.isAlbumFavorite(self.viewModel.album)
+                self.isFavorite = self.userViewModel.isAlbumFavorite(album: self.viewModel.album)
                 await self.viewModel.fetchTracks()
                 await MainActor.run {
                     self.isTracksLoaded = true
@@ -354,7 +354,7 @@ struct AlbumView: View {
             if self.showNotification {
                 AlbumFavoriteNotificationView(
                     isBeingAdded: self.userViewModel.isAlbumFavorite(
-                        self.viewModel.album
+                        album: self.viewModel.album
                     )
                 )
                 .padding(.bottom, self.notificationPaddingBottom)

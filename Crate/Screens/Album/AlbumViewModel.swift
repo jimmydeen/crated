@@ -15,7 +15,7 @@ import CoreData
 
     public func fetchTracks() async {
         do {
-            let tracks = try await SpotifyAPIService.retrieveTracks(for: self.album)
+            let tracks = try await SpotifyAPIService.fetchTracks(album: self.album)
             self.tracks.append(contentsOf: tracks)
         } catch {
             print(error)

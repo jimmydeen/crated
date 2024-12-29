@@ -9,6 +9,7 @@ public enum Tab: String, CaseIterable {
 
 struct TabsView: View {
     @Environment(CommonDisplayViewModel.self) private var displayViewModel
+    @State private var isShowingBackgroundBlur: Bool = false
     @State private var isShowingReview: Bool = false
     @State private var selectedTab: Tab = .home
     
@@ -18,15 +19,14 @@ struct TabsView: View {
         ZStack {
             VStack(spacing: 0) {
                 switch selectedTab {
-                    case .home: HomeView()
+                    case .home: HomeView(isShowingBackgroundBlur: $isShowingBackgroundBlur)
                     case .search: SearchView()
                     case .activity: ActivityView()
                     case .profile: ProfileView()
                 }
                 
-                Spacer(minLength: 0)
-                
                 TabBarView(
+                    isShowingBackgroundBlur: $isShowingBackgroundBlur,
                     isShowingReview: $isShowingReview,
                     selectedTab: $selectedTab
                 )
@@ -38,31 +38,22 @@ struct TabsView: View {
                 .opacity(self.displayViewModel.isDisplayingNavigation ? 1 : 0)
                 .padding(.bottom, self.paddingBottom)
             }
-            .zIndex(0)
-                
-            if self.isShowingReview {
+        
+            if self.isShowingBackgroundBlur {
                 CommonBackgroundBlur()
                     .onTapGesture {
-                        withAnimation {
-                            self.isShowingReview.toggle()
-                        }
+                        self.isShowingBackgroundBlur = false
                     }
                     .zIndex(1)
-                
+            }
+            
+            if self.isShowingReview {
                 ReviewView()
                     .transition(.move(edge: .bottom))
                     .zIndex(2)
             }
             
             if self.displayViewModel.isDisplayingSignIn {
-                CommonBackgroundBlur()
-                    .onTapGesture {
-                        withAnimation {
-                            self.displayViewModel.isDisplayingSignIn.toggle()
-                        }
-                    }
-                    .zIndex(1)
-                
                 SignInView()
                     .transition(.move(edge: .bottom))
                     .zIndex(2)
@@ -72,6 +63,7 @@ struct TabsView: View {
 }
 
 struct TabBarView: View {
+    @Binding var isShowingBackgroundBlur: Bool
     @Binding var isShowingReview: Bool
     @Binding var selectedTab: Tab
     
@@ -81,7 +73,8 @@ struct TabBarView: View {
             TabBarButtonView(imageName: "magnifyingglass") { self.selectedTab = Tab.search }
             TabBarButtonView(imageName: "plus.circle") {
                 withAnimation {
-                    self.isShowingReview.toggle()
+                    self.isShowingBackgroundBlur = true
+                    self.isShowingReview = true
                 }
             }
             TabBarButtonView(imageName: "list.bullet.rectangle.fill") { self.selectedTab = Tab.activity }

@@ -115,63 +115,28 @@ struct ListView: View {
                         
                         Spacer()
                         
-                        Image(systemName: "ellipsis")
-                            .contextMenu(
-                                ContextMenu(
-                                    menuItems: {
-                                        Button(
-                                            action: {
-                                                self.isRenaming.toggle()
-                                            },
-                                            label: {
-                                                HStack {
-                                                    Image(systemName: "pencil")
-                                                    
-                                                    Text("Rename")
-                                                }
-                                            }
-                                        )
-                                        
-                                        Button(
-                                            action: {
-                                                self.isSharing.toggle()
-                                            },
-                                            label: {
-                                                HStack {
-                                                    Image(systemName: "square.and.arrow.up")
-                                                    
-                                                    Text("Share")
-                                                }
-                                            }
-                                        )
-                                        
-                                        Button(
-                                            action: {
-                                                self.displayBinding.toggle()
-                                            },
-                                            label: {
-                                                HStack {
-                                                    Image(systemName: "delete.right.fill")
-                                                    
-                                                    Text("Delete")
-                                                }
-                                            }
-                                        )
-                                    }
-                                )
-                            )
-                        
-                        Button(
-                            action: {
-                                self.isShowingSettings = true
-                            },
-                            label: {
-                                Image(systemName: "ellipsis")
-                                    .font(.title2)
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(.blue)
+                        Button(action: {}) {
+                            Image(systemName: "ellipsis")
+                                .font(.title2)
+                        }
+                        .contextMenu {
+                            Button(action: {
+                                self.isRenaming.toggle()
+                            }) {
+                                Label("Rename", systemImage: "pencil")
                             }
-                        )
+                            Button(action: {
+                                self.isSharing.toggle()
+                            }) {
+                                Label("Share", systemImage: "square.and.arrow.up")
+                            }
+                            Button(action: {
+                                self.displayBinding.toggle()
+                            }) {
+                                Label("Delete", systemImage: "trash.fill")
+                                    .foregroundColor(.red)
+                            }
+                        }
                     }
                     .padding(.trailing, self.titlePaddingTrailing)
                     .padding(.bottom, self.titlePaddingBottom)
@@ -195,7 +160,7 @@ struct ListView: View {
                 AlbumView(
                     album: album,
                     displayBinding: self.$isDisplayingAlbum,
-                    rating: self.userViewModel.ratings[album.id] ?? 0
+                    rating: self.userViewModel.albumRatings[album.id] ?? 0
                 )
                 .transition(.move(edge: .trailing))
             }
@@ -250,8 +215,8 @@ struct ListViewPreview: PreviewProvider {
         ListView(
             list: ListModel(
                 name: "List Name",
-                id: UUID(),
                 user_id: UUID(),
+                image: "",
                 albums: [
                     AlbumModel(
                         name: "More Life",
@@ -274,7 +239,7 @@ struct ListViewPreview: PreviewProvider {
                         image_url_lq: "https://i.scdn.co/image/ab67616d0000b273e286ee36b4015afa8832356a"
                     )
                 ],
-                image: ""
+                id: UUID()
             ),
             displayBinding: .constant(true)
         )
