@@ -2,14 +2,18 @@ import SwiftUI
 
 struct AccountView: View {
     @State private var tab: AccountTab = .home
-    @State private var viewModel: SignInViewModel = SignInViewModel()
+    @State private var homeMarqueeHeight: CGFloat = UIScreen.main.bounds.height * 0.5
+    
+    @State var viewModel: AccountViewModel
     
     private let homeButtonWidth: CGFloat = 240
     private let homeButtonCornerRadius: CGFloat = 12
     private let homeButtonPaddingHorizontal: CGFloat = 16
     private let homeButtonPaddingVertical: CGFloat = 8
     private let homeMarqueeCornerRadius: CGFloat = 12
-    private let homeMarqueeHeight: CGFloat = UIScreen.main.bounds.height * 0.6
+    private let homeMarqueeHeightNormal: CGFloat = UIScreen.main.bounds.height * 0.5
+    private let homeMarqueeHeightSignUp: CGFloat = UIScreen.main.bounds.height * 0.3
+    private let homeMarqueePaddingBottom: CGFloat = UIScreen.main.bounds.height * 0.05
     private let homeMarqueeWidth: CGFloat = UIScreen.main.bounds.width * 0.9
     private let homePaddingBottom: CGFloat = UIScreen.main.bounds.height * 0.05
     
@@ -19,11 +23,13 @@ struct AccountView: View {
                 Image("accountbg")
                     .resizable()
                     .scaledToFill()
-                    .frame(width: homeMarqueeWidth, height: homeMarqueeHeight)
+                    .frame(
+                        width: homeMarqueeWidth,
+                        height: tab == .emailSignUp ? homeMarqueeHeightSignUp : homeMarqueeHeightNormal
+                    )
                     .clipped()
                     .cornerRadius(homeMarqueeCornerRadius)
-                
-                Spacer()
+                    .padding(.bottom, homeMarqueePaddingBottom)
                 
                 if tab == .home {
                     VStack {
@@ -32,7 +38,6 @@ struct AccountView: View {
                         homeButton(text: "Sign In", tab: .emailSignIn)
                         homeButton(text: "Create account", tab: .emailSignUp)
                     }
-                    .transition(.move(edge: .leading))
                 }
                 if tab == .emailSignIn {
                     SignInFormView(viewModel: $viewModel)
@@ -40,6 +45,8 @@ struct AccountView: View {
                 if tab == .emailSignUp {
                     SignUpFormView(viewModel: $viewModel)
                 }
+                
+                Spacer()
             }
             .padding(.bottom, homePaddingBottom)
         }
@@ -66,44 +73,55 @@ struct AccountView: View {
 }
 
 struct SignInFormView: View {
-    @State var username: String = ""
-    @State var password: String = ""
-    @State var isSecure: Bool = true
+    @Environment(\.dismiss) private var dismiss
     
-    @Binding var viewModel: SignInViewModel
+    @State private var email: String = ""
+    @State private var password: String = ""
+    @State private var showAlert: Bool = false
+    
+    @Binding var viewModel: AccountViewModel
     
     private let fieldCornerRadius: CGFloat = 6
+    private let fieldGroupSpacing: CGFloat = 16
     private let fieldPaddingHorizontal: CGFloat = 8
     private let fieldPaddingVertical: CGFloat = 4
     private let fieldWidth: CGFloat = 300
+    private let formPaddingTop: CGFloat = 24
     private let signInButtonWidth: CGFloat = 120
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Username")
-                .font(.title)
-            TextField("e.g. johndoe123", text: $username)
-                .autocapitalization(.none)
-                .padding(.horizontal, fieldPaddingHorizontal)
-                .padding(.vertical, fieldPaddingVertical)
-                .background(Color.lightGray)
-                .cornerRadius(fieldCornerRadius)
-                .padding(.bottom, 24)
+        VStack(spacing: fieldGroupSpacing) {
+            VStack(alignment: .leading, spacing: 0) {
+                Text("Email")
+                    .font(.title2)
+                TextField("Email", text: $email)
+                    .autocapitalization(.none)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+            }
             
-            Text("Password")
-                .font(.title)
-            SecureField("e.g. password6969", text: $password)
-                .autocapitalization(.none)
-                .padding(.horizontal, fieldPaddingHorizontal)
-                .padding(.vertical, fieldPaddingVertical)
-                .background(Color.lightGray)
-                .cornerRadius(fieldCornerRadius)
+            VStack(alignment: .leading, spacing: 0) {
+                Text("Password")
+                    .font(.title2)
+                SecureField("Password", text: $password)
+                    .autocapitalization(.none)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+            }
             
             HStack {
                 Spacer()
                 
                 Button(
-                    viewModel.signIn(
+                    action: {
+                        Task {
+                            await viewModel.signIn(
+                                email: email,
+                                password: password
+                            )
+                            if viewModel.successMessage != nil {
+                                showAlert = true
+                            }
+                        }
+                    }
                 ) {
                     Text("Sign in")
                         .font(.title2)
@@ -113,6 +131,22 @@ struct SignInFormView: View {
                         .background(Color.lightGray)
                         .cornerRadius(fieldCornerRadius)
                 }
+                .disabled(viewModel.isLoading)
+                .alert(isPresented: $showAlert) {
+                    Alert(
+                        title: Text("Success"),
+                        message: Text(viewModel.successMessage ?? ""),
+                        dismissButton: .default(Text("OK")) {
+                            dismiss()
+                        }
+                    )
+                }
+            }
+            
+            if let errorMessage = viewModel.errorMessage {
+                Text(errorMessage)
+                    .foregroundColor(.red)
+                    .padding(.horizontal)
             }
         }
         .frame(width: fieldWidth)
@@ -120,18 +154,112 @@ struct SignInFormView: View {
 }
 
 struct SignUpFormView: View {
-    @State var signInID: String = ""
-    @State var password: String = ""
+    @Environment(\.dismiss) private var dismiss
     
-    @Binding var viewModel: SignInViewModel
-    
+    @State private var username: String = ""
+    @State private var email: String = ""
+    @State private var password: String = ""
+    @State private var confirmPassword: String = ""
+    @State private var showAlert: Bool = false
+
+    @Binding var viewModel: AccountViewModel
+
+    private let fieldCornerRadius: CGFloat = 6
+    private let fieldGroupSpacing: CGFloat = 16
+    private let fieldPaddingHorizontal: CGFloat = 8
+    private let fieldPaddingVertical: CGFloat = 4
+    private let fieldWidth: CGFloat = 300
+    private let formPaddingTop: CGFloat = 24
+    private let signUpButtonWidth: CGFloat = 120
+
     var body: some View {
-        Text("Sign Up")
+        VStack(spacing: fieldGroupSpacing) {
+            VStack(alignment: .leading, spacing: 0) {
+                Text("Username")
+                    .font(.title2)
+                TextField("Enter your username", text: $username)
+                    .autocapitalization(.none)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+            }
+
+            VStack(alignment: .leading, spacing: 0) {
+                Text("Email")
+                    .font(.title2)
+                TextField("Enter your email", text: $email)
+                    .autocapitalization(.none)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+            }
+
+            VStack(alignment: .leading, spacing: 0) {
+                Text("Password")
+                    .font(.title2)
+                SecureField("Enter your password", text: $password)
+                    .autocapitalization(.none)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+            }
+
+            VStack(alignment: .leading, spacing: 0) {
+                Text("Confirm Password")
+                    .font(.title2)
+                SecureField("Re-enter your password", text: $confirmPassword)
+                    .autocapitalization(.none)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+            }
+
+            HStack {
+                Spacer()
+                
+                Button(
+                    action: {
+                        guard password == confirmPassword else {
+                            viewModel.errorMessage = "Passwords do not match."
+                            return
+                        }
+                        Task {
+                            await viewModel.signUp(
+                                username: username,
+                                email: email,
+                                password: password
+                            )
+                            if viewModel.successMessage != nil {
+                                showAlert = true
+                            }
+                        }
+                    }
+                ) {
+                    Text("Sign Up")
+                        .font(.title2)
+                        .frame(width: signUpButtonWidth)
+                        .padding(.horizontal, fieldPaddingHorizontal)
+                        .padding(.vertical, fieldPaddingVertical)
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(fieldCornerRadius)
+                }
+                .disabled(viewModel.isLoading)
+                .alert(isPresented: $showAlert) {
+                    Alert(
+                        title: Text("Success"),
+                        message: Text(viewModel.successMessage ?? ""),
+                        dismissButton: .default(Text("OK")) {
+                            dismiss()
+                        }
+                    )
+                }
+            }
+
+            if let errorMessage = viewModel.errorMessage {
+                Text(errorMessage)
+                    .foregroundColor(.red)
+                    .padding(.horizontal)
+            }
+        }
+        .frame(width: fieldWidth)
     }
 }
 
 struct AccountViewPreview: PreviewProvider {
     static var previews: some View {
-        AccountView()
+        AccountView(viewModel: AccountViewModel(userViewModel: UserViewModel()))
     }
 }

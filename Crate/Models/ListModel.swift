@@ -1,23 +1,9 @@
 import Foundation
 
-class ListModel: NSObject {
+struct ListModel {
     let name: String
-    let user_id: UUID
-    let image: URL
-    let albums: [AlbumModel]
-    let id: UUID
-    
-    init(
-        name: String,
-        user_id: UUID,
-        image: URL,
-        albums: [AlbumModel] = [],
-        id: UUID = UUID()
-    ) {
-        self.name = name
-        self.user_id = user_id
-        self.image = image
-        self.albums = albums
-        self.id = id
-    }
+    let user_id: String
+    let cover: URL?
+    let albums: [String]
+    let id: String
 }

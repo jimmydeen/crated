@@ -1,80 +1,93 @@
 import SwiftUI
 import Kingfisher
 
-public enum SearchSegment: String, CaseIterable {
-    case Albums = "album"
-    case Artists = "artist"
-    case Tracks = "track"
-    
-    var stringValue: String {
-        return self.rawValue
-    }
-}
-
 struct SearchResultView: View {
+    @State var albumForTrack: AlbumModel?
+    
+    @Binding var viewModel: SearchViewModel
+    
     let result: ResultProtocol
     
-    private let boxBackgroundOpacity: CGFloat = 0.1
-    private let boxCornerRadius: CGFloat = 8
-    private let boxPadding: CGFloat = 8
-    private let coverSize: CGFloat = 60
-    private let coverSpacingFromDetails: CGFloat = 12
-    private let detailsSpacing: CGFloat = 6
+    private let coverSize: CGFloat = 48
+    private let coverToDetailsSpacing: CGFloat = 12
+    private let detailsLineSpacing: CGFloat = 6
+    private let resultBoxCornerRadius: CGFloat = 8
+    private let resultBoxPadding: CGFloat = 8
     
     var body: some View {
-        HStack(alignment: .center, spacing: self.coverSpacingFromDetails) {
-            KFImage(URL(string: result.image_url_hq ?? ""))
-                .resizable()
-                .placeholder {
-                    CommonPlaceholderView()
+        NavigationLink(
+            destination: {
+                if (result as? TrackModel) != nil {
+                    if let album = albumForTrack {
+                        AlbumView(viewModel: AlbumViewModel(album: album))
+                    } else {
+                        EmptyView()
+                    }
+                } else if let album = result as? AlbumModel {
+                    AlbumView(viewModel: AlbumViewModel(album: album))
+                } else if let artist = result as? ArtistModel {
+                    ArtistView(viewModel: ArtistViewModel(artist: artist))
+                } else {
+                    EmptyView()
                 }
-                .frame(width: self.coverSize, height: self.coverSize)
-            
-            VStack(alignment: .leading) {
-                Spacer()
+            }
+        ) {
+            HStack(alignment: .center) {
+                KFImage(result.cover_hq)
+                    .resizable()
+                    .placeholder {
+                        PlaceholderView()
+                    }
+                    .frame(width: coverSize, height: coverSize)
                 
-                Text(self.result.name)
-                
-                if self.result.artists != [] {
+                VStack(alignment: .leading) {
                     Spacer()
-                        .frame(height: self.detailsSpacing)
                     
-                    Text(self.result.artists.joined(separator: ", "))
-                        .foregroundColor(.gray)
+                    Text(result.name)
+                    
+                    if !result.artists.isEmpty {
+                        Spacer()
+                            .frame(height: detailsLineSpacing)
+                        
+                        Text(result.artists.joined(separator: ", "))
+                            .foregroundColor(.gray)
+                    }
+                    
+                    Spacer()
                 }
+                .frame(height: coverSize)
+                .font(.subheadline)
                 
                 Spacer()
             }
-            .frame(height: self.coverSize)
-            .font(.footnote)
-            
-            Spacer()
+            .padding(resultBoxPadding)
+            .background(Color.lightGray)
+            .cornerRadius(resultBoxCornerRadius)
         }
-        .padding(self.boxPadding)
-        .background(
-            RoundedRectangle(cornerRadius: self.boxCornerRadius)
-                .fill(Color.gray.opacity(self.boxBackgroundOpacity))
-        )
+        .task {
+            if let track = result as? TrackModel {
+                do {
+                    albumForTrack = try await MusicMetadataAPIService.fetchAlbumDetails(albumID: track.album_id)
+                } catch {
+                    print("Failed to fetch album details: \(error.localizedDescription)")
+                    albumForTrack = nil
+                }
+            }
+        }
     }
 }
 
 struct SearchView: View {
-    @Environment(CommonUserViewModel.self) private var userViewModel
-    @State var album: AlbumModel?
-    @State var artist: ArtistModel?
-    @State var isDisplayingAlbum: Bool = false
-    @State var isDisplayingArtist: Bool = false
     @State var isSearching: Bool = false
-    @State var isShowingTitle: Bool = true
     @State var viewModel: SearchViewModel = SearchViewModel()
     
     private let titlePaddingTop: CGFloat = 84
     
     var body: some View {
-        ZStack {
+        NavigationStack {
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 6) {
-                    if self.isShowingTitle {
+                    if !isSearching {
                         Text("Search")
                             .font(.largeTitle)
                             .fontWeight(.bold)
@@ -85,7 +98,7 @@ struct SearchView: View {
                             .foregroundColor(.gray)
                         
                         ZStack {
-                            if self.viewModel.query.isEmpty {
+                            if viewModel.query.isEmpty {
                                 HStack {
                                     Text("Search")
                                         .foregroundColor(.gray)
@@ -95,12 +108,12 @@ struct SearchView: View {
                             }
                             
                             HStack {
-                                TextField("", text: self.$viewModel.query)
+                                TextField("", text: $viewModel.query)
                                     .autocapitalization(.none)
                                     .foregroundColor(.black)
-                                    .onChange(of: self.viewModel.query) {
+                                    .onChange(of: viewModel.query) {
                                         withAnimation {
-                                            self.isShowingTitle = false
+                                            isSearching = true
                                         }
                                     }
                                 
@@ -114,91 +127,40 @@ struct SearchView: View {
                     .padding(.vertical, 6)
                     .background(
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(Colors.lightGray)
+                            .fill(Color.lightGray)
                     )
                     
-                    Picker("Segment", selection: self.$viewModel.segment) {
-                        Text("Albums").tag(SearchSegment.Albums)
-                        Text("Artists").tag(SearchSegment.Artists)
-                        Text("Tracks").tag(SearchSegment.Tracks)
+                    Picker("Segment", selection: $viewModel.segment) {
+                        Text("Albums").tag(SearchSegment.album)
+                        Text("Artists").tag(SearchSegment.artist)
+                        Text("Tracks").tag(SearchSegment.track)
                     }
-                    .disabled(self.isShowingTitle)
-                    .opacity(self.isShowingTitle ? 0 : 1)
+                    .disabled(!isSearching)
+                    .opacity(isSearching ? 1 : 0)
                     .pickerStyle(.segmented)
                     
                     LazyVStack {
-                        ForEach(self.viewModel.results, id: \.id) { result in
-                            Button(
-                                action: {
-                                    self.destinationView(result: result)
-                                },
-                                label: {
-                                    SearchResultView(result: result)
-                                        .if(result.id == self.viewModel.results.last?.id) { view in
-                                            view.task {
-                                                await self.viewModel.fetchResults()
-                                            }
-                                        }
+                        ForEach(viewModel.results, id: \.id) { result in
+                            SearchResultView(viewModel: $viewModel, result: result)
+                                .if(result.id == viewModel.results.last?.id) { view in
+                                    view.task {
+                                        await viewModel.fetchResults()
+                                    }
                                 }
-                            )
                         }
                     }
                 }
-                .padding(.top, self.titlePaddingTop)
+                .padding(.top, titlePaddingTop)
             }
+            .ignoresSafeArea(.all)
             .padding(.horizontal)
-            
-            if isDisplayingAlbum, let album = self.album {
-                ZStack {
-                    Color.white
-                    
-                    AlbumView(
-                        album: album,
-                        displayBinding: self.$isDisplayingAlbum,
-                        rating: self.userViewModel.albumRatings[album.id] ?? 0
-                    )
-                }
-                .transition(.move(edge: .trailing))
-            }
-            
-            if self.isDisplayingArtist, let artist = self.artist {
-                ZStack {
-                    Color.white
-                    
-                    ArtistView(
-                        artist: artist,
-                        displayBinding: self.$isDisplayingArtist
-                    )
-                }
-            }
-        }
-    }
-    
-    private func destinationView(result: ResultProtocol) {
-        if let album = result as? AlbumModel {
-            self.album = album
-            
-            withAnimation {
-                isDisplayingAlbum.toggle()
-            }
-        } else if let artist = result as? ArtistModel {
-            self.artist = artist
-            
-            withAnimation {
-                isDisplayingArtist.toggle()
-            }
-        } else {
-            return
         }
     }
 }
 
 struct SearchViewPreview: PreviewProvider {
     static var previews: some View {
-        @State var userViewModel = CommonUserViewModel(context: PersistenceController.shared.container.viewContext)
-
         SearchView()
-            .environment(userViewModel)
             .ignoresSafeArea(.all)
     }
 }

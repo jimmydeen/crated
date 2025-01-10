@@ -1,44 +1,45 @@
 import Foundation
 import Observation
 
+public enum SearchSegment: String {
+    case album, artist, track
+}
+
 @Observable class SearchViewModel {
     var query: String = "" {
         didSet {
             Task {
-                await self.newQuery()
+                await newQuery()
             }
         }
     }
     var results: [ResultProtocol] = []
-    var segment = SearchSegment.Albums {
+    var segment = SearchSegment.album {
         didSet {
             Task {
-                await self.newQuery()
+                await newQuery()
             }
         }
     }
     
-    @MainActor private func newQuery() async {
-        self.results = []
-        if query.isEmpty {
-            return
+    private var isFetching: Bool = false
+    
+    private func newQuery() async {
+        results = []
+        if !query.isEmpty {
+            await fetchResults()
         }
-        await self.fetchResults()
     }
-    @MainActor public func fetchResults() async {
+    public func fetchResults() async {
         do {
-            let result = try await SpotifyAPIService.performSearch(
-                query: self.query,
-                type: self.segment,
-                range: self.results.count..<self.results.count + 20
+            let result = try await MusicMetadataAPIService.performSearch(
+                query: query,
+                type: segment,
+                range: results.count..<results.count + 20
             )
-            self.results.append(contentsOf: result)
+            results.append(contentsOf: result)
         } catch {
             print(error)
         }
-    }
-    @MainActor public func fetchAlbumFromTrack(for albumID: String) async -> AlbumModel? {
-        let album = try? await SpotifyAPIService.fetchAlbumDetails(albumID: albumID)
-        return album
     }
 }

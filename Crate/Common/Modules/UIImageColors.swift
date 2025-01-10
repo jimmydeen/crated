@@ -21,10 +21,10 @@ public struct UIImageColors {
     public var detail: UIColor!
   
     public init(background: UIColor, primary: UIColor, secondary: UIColor, detail: UIColor) {
-      self.background = background
-      self.primary = primary
-      self.secondary = secondary
-      self.detail = detail
+        self.background = background
+        self.primary = primary
+        self.secondary = secondary
+        self.detail = detail
     }
 }
 
@@ -72,9 +72,9 @@ fileprivate extension Double {
     }
     
     func isDistinct(_ other: Double) -> Bool {
-        let _r = self.r
-        let _g = self.g
-        let _b = self.b
+        let _r = r
+        let _g = g
+        let _b = b
         let o_r = other.r
         let o_g = other.g
         let o_b = other.b
@@ -173,7 +173,7 @@ fileprivate extension Double {
     }
     
     var pretty: String {
-        return "\(Int(self.r)), \(Int(self.g)), \(Int(self.b))"
+        return "\(Int(r)), \(Int(g)), \(Int(b))"
     }
 }
 
@@ -196,7 +196,7 @@ extension UIImage {
                 defer {
                     UIGraphicsEndImageContext()
                 }
-                self.draw(in: CGRect(x: 0, y: 0, width: newSize.width, height: newSize.height))
+                draw(in: CGRect(x: 0, y: 0, width: newSize.width, height: newSize.height))
                 guard let result = UIGraphicsGetImageFromCurrentImageContext() else {
                     fatalError("UIImageColors.resizeForUIImageColors failed: UIGraphicsGetImageFromCurrentImageContext returned nil.")
                 }
@@ -215,18 +215,18 @@ extension UIImage {
     }
 
     public func getColors(quality: UIImageColorsQuality = .high) -> UIImageColors? {
-        var scaleDownSize: CGSize = self.size
+        var scaleDownSize: CGSize = size
         if quality != .highest {
-            if self.size.width < self.size.height {
-                let ratio = self.size.height/self.size.width
+            if size.width < size.height {
+                let ratio = size.height/size.width
                 scaleDownSize = CGSize(width: quality.rawValue/ratio, height: quality.rawValue)
             } else {
-                let ratio = self.size.width/self.size.height
+                let ratio = size.width/size.height
                 scaleDownSize = CGSize(width: quality.rawValue, height: quality.rawValue/ratio)
             }
         }
         
-        guard let resizedImage = self.resizeForUIImageColors(newSize: scaleDownSize) else { return nil }
+        guard let resizedImage = resizeForUIImageColors(newSize: scaleDownSize) else { return nil }
 
         #if os(OSX)
             guard let cgImage = resizedImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else { return nil }

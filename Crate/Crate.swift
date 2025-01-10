@@ -1,19 +1,22 @@
 import SwiftUI
-import Supabase
+import FirebaseCore
+
+class AppDelegate: NSObject, UIApplicationDelegate {
+  func application(_ application: UIApplication,
+                   didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+    FirebaseApp.configure()
+    return true
+  }
+}
 
 @main
 struct CrateApp: App {
-    @State private var displayViewModel = CommonDisplayViewModel()
-    @State private var userViewModel = CommonUserViewModel(context: PersistenceController.context)
-    let persistenceController = PersistenceController.shared
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     
     var body: some Scene {
         WindowGroup {
             TabsView()
-                .environment(displayViewModel)
-                .environment(userViewModel)
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
-                .ignoresSafeArea(.all)
+                .environment(UserViewModel())
         }
     }
 }

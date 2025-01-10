@@ -1,8 +1,10 @@
 import Foundation
 import SwiftUI
 
-protocol SearchResultProtocol {
-    var title: String { get }
-    var subtitle: String { get }
-    var image: Image { get }
+protocol ResultProtocol {
+    var id: String { get }
+    var name: String { get }
+    var artists: [String] { get }
+    var cover_hq: URL { get }
+    var cover_lq: URL { get }
 }

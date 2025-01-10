@@ -1,4 +1,3 @@
-import Foundation
 import UIKit
 import SwiftUI
 import Observation
@@ -9,21 +8,17 @@ import Observation
 
     public func fetchNewReleases() async {
         do {
-            let response = try await SpotifyAPIService.fetchNewReleases(
+            let response = try await MusicMetadataAPIService.fetchNewReleases(
                 range: albums.count..<albums.count+6
             )
-            self.albums.append(contentsOf: response)
+            albums.append(contentsOf: response)
         } catch {
             print(error)
         }
     }
     public func fetchGradient(_ album: AlbumModel) async -> Gradient? {
-        guard let urlString = album.image_url_hq,
-            let url = URL(string: urlString) else {
-            return nil
-            }
         do {
-            let (data, _) = try await URLSession.shared.data(from: url)
+            let (data, _) = try await URLSession.shared.data(from: album.cover_lq)
             if let image = UIImage(data: data),
                let colors = image.getColors() {
                 var gradientColors: [Color] = []

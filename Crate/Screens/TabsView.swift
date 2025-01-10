@@ -1,113 +1,58 @@
 import SwiftUI
 
-public enum Tab: String, CaseIterable {
-    case home
-    case search
-    case activity
-    case profile
+fileprivate enum Tab {
+    case home, search, activity, profile
 }
 
 struct TabsView: View {
-    @Environment(CommonDisplayViewModel.self) private var displayViewModel
-    @State private var isShowingBackgroundBlur: Bool = false
-    @State private var isShowingReview: Bool = false
-    @State private var selectedTab: Tab = .home
+    @State private var tab: Tab = .home
+    @State private var isShowingReviewPopUp: Bool = false
     
-    private let paddingBottom: CGFloat = 32
+    private let navBarButtonHeight: CGFloat = UIScreen.main.bounds.height * 0.06
+    private let navBarButtonWidth: CGFloat = UIScreen.main.bounds.width * 0.15
     
     var body: some View {
         ZStack {
             VStack(spacing: 0) {
-                switch selectedTab {
-                    case .home: HomeView(isShowingBackgroundBlur: $isShowingBackgroundBlur)
+                switch tab {
+                    case .home: HomeView()
                     case .search: SearchView()
                     case .activity: ActivityView()
                     case .profile: ProfileView()
                 }
                 
-                TabBarView(
-                    isShowingBackgroundBlur: $isShowingBackgroundBlur,
-                    isShowingReview: $isShowingReview,
-                    selectedTab: $selectedTab
-                )
-                .background(Color.white)
-                .disabled(!self.displayViewModel.isDisplayingNavigation)
-                .foregroundColor(.black)
+                HStack {
+                    navBarButton(icon: "house.fill") { tab = Tab.home }
+                    navBarButton(icon: "magnifyingglass") { tab = Tab.search }
+                    navBarButton(icon: "plus.circle") { isShowingReviewPopUp = true }
+                    navBarButton(icon: "list.bullet.rectangle.fill") { tab = Tab.activity }
+                    navBarButton(icon: "person.crop.circle.fill") { tab = Tab.profile }
+                }
                 .font(.title)
-                .frame(maxWidth: .infinity)
-                .opacity(self.displayViewModel.isDisplayingNavigation ? 1 : 0)
-                .padding(.bottom, self.paddingBottom)
+                .foregroundColor(.black)
             }
         
-            if self.isShowingBackgroundBlur {
-                CommonBackgroundBlur()
+            if isShowingReviewPopUp {
+                BackgroundBlurView()
                     .onTapGesture {
-                        self.isShowingBackgroundBlur = false
+                        isShowingReviewPopUp = false
                     }
-                    .zIndex(1)
-            }
-            
-            if self.isShowingReview {
+                
                 ReviewView()
-                    .transition(.move(edge: .bottom))
-                    .zIndex(2)
-            }
-            
-            if self.displayViewModel.isDisplayingSignIn {
-                SignInView()
-                    .transition(.move(edge: .bottom))
-                    .zIndex(2)
             }
         }
     }
-}
-
-struct TabBarView: View {
-    @Binding var isShowingBackgroundBlur: Bool
-    @Binding var isShowingReview: Bool
-    @Binding var selectedTab: Tab
     
-    var body: some View {
-        HStack {
-            TabBarButtonView(imageName: "house.fill") { self.selectedTab = Tab.home }
-            TabBarButtonView(imageName: "magnifyingglass") { self.selectedTab = Tab.search }
-            TabBarButtonView(imageName: "plus.circle") {
-                withAnimation {
-                    self.isShowingBackgroundBlur = true
-                    self.isShowingReview = true
-                }
-            }
-            TabBarButtonView(imageName: "list.bullet.rectangle.fill") { self.selectedTab = Tab.activity }
-            TabBarButtonView(imageName: "person.crop.circle.fill") { self.selectedTab = Tab.profile }
-        }
-    }
-}
-
-struct TabBarButtonView: View {
-    let imageName: String
-    let action: () -> Void
-    
-    private let buttonHeight: CGFloat = UIScreen.main.bounds.height * 0.06
-    private let buttonWidth: CGFloat = UIScreen.main.bounds.width * 0.15
-    
-    var body: some View {
-        Button(action: { self.action() } ) {
-            Image(systemName: self.imageName)
-                .frame(width: self.buttonWidth, height: self.buttonHeight)
+    private func navBarButton(icon: String, action: @escaping () -> Void) -> some View {
+        Button(action: { action() } ) {
+            Image(systemName: icon)
+                .frame(width: navBarButtonWidth, height: navBarButtonHeight)
         }
     }
 }
 
 struct TabsViewPreview: PreviewProvider {
-    static var displayViewModel = CommonDisplayViewModel()
-    static var userViewModel = CommonUserViewModel(
-        context: PersistenceController.shared.container.viewContext
-    )
-    
     static var previews: some View {
         TabsView()
-            .environment(displayViewModel)
-            .environment(userViewModel)
-            .ignoresSafeArea(.all)
     }
 }

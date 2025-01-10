@@ -9,10 +9,11 @@ import Observation
         self.artist = artist
     }
     
-    @MainActor public func retrieveAlbums() async {
+    public func retrieveAlbums() async {
+        guard albums.isEmpty else { return }
         do {
-            let albums = try await SpotifyAPIService.fetchAlbumsByArtist(artistID: artist.id)
-            self.albums = albums
+            let newAlbums = try await MusicMetadataAPIService.fetchAlbumsByArtist(artistID: artist.id)
+            self.albums = newAlbums
         } catch {
             print(error)
         }
