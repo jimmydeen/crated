@@ -1,6 +1,6 @@
 import Foundation
 import Observation
 
-@Observable class ProfileViewModel {
+@Observable class SignInViewModel {
     
 }

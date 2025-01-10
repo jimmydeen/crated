@@ -3,14 +3,14 @@ import Foundation
 class ListModel: NSObject {
     let name: String
     let user_id: UUID
-    let image: String?
+    let image: URL
     let albums: [AlbumModel]
     let id: UUID
     
     init(
         name: String,
         user_id: UUID,
-        image: String?,
+        image: URL,
         albums: [AlbumModel] = [],
         id: UUID = UUID()
     ) {

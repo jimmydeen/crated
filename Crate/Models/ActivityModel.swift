@@ -1,5 +1,9 @@
 import Foundation
 
+enum ActivityType {
+    case albumRating, albumReview, favoriteAdd, favoriteRemove, friendAdded
+}
+
 class ActivityModel: NSObject {
     let id: UUID
     let username: String
