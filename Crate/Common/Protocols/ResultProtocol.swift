@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-protocol ResultProtocol {
+protocol ResultProtocol: Hashable {
     var id: String { get }
     var name: String { get }
     var artists: [String] { get }

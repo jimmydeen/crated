@@ -1,20 +1,20 @@
 import Foundation
 
-class MusicMetadataAPIService {
-    static let shared = MusicMetadataAPIService()
+class MetadataService {
+    static let shared = MetadataService()
     
     static let clientID = "3df19c42306e4256863747c6f43bb7b3"
     static let clientSecret = "a94ede4677104b38a3c98333ac4c801c"
-    static let searchRegion = "AU"
+    static let clientRegion = "AU"
     
-    private static var accessToken: String?
+    private static var token: String?
     private static var tokenExpirationDate: Date?
-    private static let urlSession = URLSession(configuration: .default)
+    private static let session = URLSession(configuration: .default)
     
     private init() {}
     
     private static func authenticate() async throws -> String {
-        if let token = accessToken,
+        if let token = token,
            let expirationDate = tokenExpirationDate,
            Date.now < expirationDate {
             return token
@@ -22,7 +22,7 @@ class MusicMetadataAPIService {
         
         let authKey = "\(clientID):\(clientSecret)"
         guard let authData = authKey.data(using: .utf8) else {
-            throw SpotifyAPIError.FailedToRetrieveAccessToken
+            throw SpotifyAPIError.FailedToRetrieveToken
         }
         let authString = authData.base64EncodedString()
         
@@ -32,7 +32,7 @@ class MusicMetadataAPIService {
         request.addValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
         request.httpBody = "grant_type=client_credentials".data(using: .utf8)
         
-        let (data, response) = try await urlSession.data(for: request)
+        let (data, response) = try await session.data(for: request)
         
         guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
             throw SpotifyAPIError.InvalidResponse
@@ -42,15 +42,15 @@ class MusicMetadataAPIService {
             with: data,
             options: []
         ) as? [String: Any],
-              let accessToken = json["access_token"] as? String,
+              let token = json["access_token"] as? String,
               let expiresIn = json["expires_in"] as? TimeInterval else {
-            throw SpotifyAPIError.FailedToRetrieveAccessToken
+            throw SpotifyAPIError.FailedToRetrieveToken
         }
         
-        self.accessToken = accessToken
+        self.token = token
         tokenExpirationDate = Date().addingTimeInterval(expiresIn)
         
-        return accessToken
+        return token
     }
     private static func getData(from url: URL) async throws -> Data {
         let token = try await authenticate()
@@ -58,7 +58,7 @@ class MusicMetadataAPIService {
         request.httpMethod = "GET"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         
-        let (data, response) = try await urlSession.data(for: request)
+        let (data, response) = try await session.data(for: request)
         guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
             print(url)
             throw SpotifyAPIError.InvalidResponse
@@ -89,7 +89,7 @@ class MusicMetadataAPIService {
         return response.items.map { $0.toModel() }
     }
     public static func fetchNewReleases(range: Range<Int>) async throws -> [AlbumModel] {
-        let urlString = "https://api.spotify.com/v1/browse/new-releases?country=\(searchRegion)&limit=\(range.count)&offset=\(range.lowerBound)"
+        let urlString = "https://api.spotify.com/v1/browse/new-releases?country=\(clientRegion)&limit=\(range.count)&offset=\(range.lowerBound)"
         guard let url = URL(string: urlString) else {
             throw SpotifyAPIError.InvalidURL
         }
@@ -111,7 +111,7 @@ class MusicMetadataAPIService {
         type: SearchSegment,
         range: Range<Int>
     ) async throws -> [ResultProtocol] {
-        let urlString = "https://api.spotify.com/v1/search?q=\(query)&type=\(type.rawValue)&market=\(searchRegion)&limit=\(range.count)&offset=\(range.lowerBound)"
+        let urlString = "https://api.spotify.com/v1/search?q=\(query)&type=\(type.rawValue)&market=\(clientRegion)&limit=\(range.count)&offset=\(range.lowerBound)"
         guard let url = URL(string: urlString) else {
             throw SpotifyAPIError.InvalidURL
         }
@@ -128,6 +128,10 @@ class MusicMetadataAPIService {
             let response = try decode(SearchResponseTracksModel.self, from: data)
             return response.tracks.items.map { $0.toModel() }
         }
+    }
+    
+    private enum SpotifyAPIError: Error {
+        case FailedToRetrieveToken, InvalidResponse, InvalidURL
     }
 }
 
