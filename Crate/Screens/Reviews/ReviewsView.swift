@@ -2,7 +2,7 @@ import SwiftUI
 import Kingfisher
 
 struct ReviewsView: View {
-    @State var viewModel: ReviewsViewModel
+    @State var viewModel = ReviewsViewModel()
     
     private let reviewCoverWidth: CGFloat = 100
     private let reviewCoverHeight: CGFloat = 100
@@ -15,15 +15,13 @@ struct ReviewsView: View {
                         KFImage(album.cover_hq)
                             .resizable()
                             .frame(width: reviewCoverWidth, height: reviewCoverHeight)
-                            
-                        Text("\(album.name) given \(String(viewModel.reviews[album] ?? 0)) out of 5")
                     }
                 }
             } else {
                 VStack {
                     Spacer()
                     
-                    Text("No reviews yet")
+                    Text("No reviews just yet.")
                     
                     Spacer()
                 }

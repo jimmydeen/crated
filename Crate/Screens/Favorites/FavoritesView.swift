@@ -2,7 +2,7 @@ import SwiftUI
 import Kingfisher
 
 struct FavoritesView: View {
-    @State var viewModel: FavoritesViewModel
+    @State var viewModel = FavoritesViewModel()
     
     private let gridRowCellCount: Int = 3
     private let gridSpacing: CGFloat = UIScreen.main.bounds.width * 0.034
@@ -15,9 +15,7 @@ struct FavoritesView: View {
                     spacing: gridSpacing
                 ) {
                     ForEach(viewModel.favorites, id: \.id) { album in
-                        NavigationLink(
-                            destination: AlbumView(viewModel: AlbumViewModel(album: album))
-                        ) {
+                        NavigationLink(destination: AlbumView(album: album)) {
                             KFImage(album.cover_hq)
                                 .resizable()
                                 .frame(width: gridCellSize, height: gridCellSize)
@@ -25,9 +23,7 @@ struct FavoritesView: View {
                     }
                 }
             } else {
-                VStack {
-                    Text("No favorites just yet.")
-                }
+                emptyFavorites
             }
         }
         .navigationTitle("Favorites")
@@ -36,9 +32,25 @@ struct FavoritesView: View {
         }
     }
     
+    private var emptyFavorites: some View {
+        VStack {
+            Spacer()
+            
+            Text("No favorites just yet.")
+            
+            Spacer()
+        }
+    }
     private var gridCellSize: CGFloat {
         let totalSpace = UIScreen.main.bounds.width - (gridSpacing * (CGFloat(gridRowCellCount) + 1))
         let cellSize = totalSpace / CGFloat(gridRowCellCount)
         return cellSize
+    }
+}
+
+struct FavoritesViewPreview: PreviewProvider {
+    static var previews: some View {
+        FavoritesView()
+            .environment(UserViewModel())
     }
 }

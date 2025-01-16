@@ -1,79 +1,89 @@
 import Foundation
 import Observation
 
-@Observable class AlbumViewModel {
-    let album: AlbumModel
+@Observable class AlbumViewModel: UserViewModel {
+    let metadata: MetadataService = .shared
     
+    var album: AlbumModel?
     var favorites: [String] = []
     var isFavorite: Bool = false
+    var isLoaded: Bool = false
     var rating: Double = 0
+    var track: TrackModel?
     var tracks: [TrackModel] = []
-    var user: UserModel
     
-    private let databaseService: DataStoreService
-
     init(album: AlbumModel) {
         self.album = album
-        self.databaseService = .shared
-        self.user = MockData.user
-        self.isFavorite = user.favorite_albums.contains(album.id)
-        self.rating = user.album_ratings[album.id] ?? 0
+        self.track = nil
+        self.isLoaded = true
+    }
+    
+    init(track: TrackModel) {
+        self.album = nil
+        self.track = track
     }
 
-    public func fetchTracksInfo() async {
+    public func fetchAlbum() async {
         do {
-            let tracks = try await MusicMetadataAPIService.fetchTracks(album: album)
-            favorites = user.favorite_tracks[album.id] ?? []
-            self.tracks.append(contentsOf: tracks)
+            album = try await metadata.fetchAlbumDetails(albumID: track!.album_id)
+            isLoaded = true
         } catch {
             print(error)
         }
     }
-    public func updateUser() async { }
+    public func fetchInfo() async {
+        guard tracks.isEmpty else { return }
+        
+        do {
+            tracks = try await metadata.fetchTracks(album: album!)
+            favorites = try await user.retrieveAlbumFavorites(album: album!)
+            isFavorite = try await user.isAlbumFavorited(album: album!)
+            rating = try await user.retrieveRating(album: album!)
+        } catch {
+            print(error)
+        }
+    }
     
     public func favoriteAlbum() async {
-        if isFavorite {
-            if let index = user.favorite_albums.firstIndex(of: album.id) {
-                user.favorite_albums.remove(at: index)
+        do {
+            if isFavorite {
+                try await user.unfavoriteAlbum(album: album!)
+            } else {
+                try await user.favoriteAlbum(album: album!)
             }
-        } else {
-            if !user.favorite_albums.contains(album.id) {
-                user.favorite_albums.append(album.id)
-            }
+        } catch {
+            print(error)
         }
         isFavorite.toggle()
-        
-        await updateUser()
     }
-    public func favoriteTrack(_ track: TrackModel) async {
-        if user.favorite_tracks.keys.contains(album.id) {
-            if user.favorite_tracks[album.id]!.contains(track.id) {
-                if let index = user.favorite_tracks[album.id]!.firstIndex(of: track.id) {
-                    user.favorite_tracks[album.id]!.remove(at: index)
-                }
-                if user.favorite_tracks[album.id]!.isEmpty {
-                    user.favorite_tracks.removeValue(forKey: album.id)
-                }
+    
+    public func favoriteTrack(track: TrackModel) async {
+        do {
+            if try await user.isTrackFavorited(track: track) {
+                try await user.unfavoriteTrack(track: track)
             } else {
-                user.favorite_tracks[album.id]!.append(track.id)
+                try await user.favoriteTrack(track: track)
+            }
+        } catch {
+            print(error)
+        }
+    }
+    
+    public func rateAlbum(rating: Double) async {
+        if self.rating == rating {
+            self.rating = 0
+            do {
+                try await user.updateRating(id: album!.id, rating: 0)
+            } catch {
+                print(error)
             }
         } else {
-            user.favorite_tracks[album.id] = [track.id]
-        }
-        
-        await updateUser()
-    }
-    public func rateAlbum(_ newRating: Double) {
-        if rating == newRating {
-            rating = 0
-            user.album_ratings[album.id] = 0
-        } else {
-            rating = newRating
-            user.album_ratings[album.id] = rating
-        }
-        
-        Task {
-            await updateUser()
+            self.rating = rating
+            do {
+                try await user.updateRating(id: album!.id, rating: rating)
+            } catch {
+                print(error)
+            }
         }
     }
 }

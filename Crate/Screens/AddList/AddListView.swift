@@ -1,57 +1,25 @@
 import SwiftUI
 
 struct AddListView: View {
+    @State var viewModel = AddListViewModel()
     @State private var name: String = ""
     @State private var coverURL: String = ""
-    @State private var albums: String = "" // Comma-separated album IDs
-    @Environment(\.dismiss) private var dismiss
-    
-    var onSave: (ListModel) -> Void
     
     var body: some View {
         Form {
             Section(header: Text("List Details")) {
                 TextField("Name", text: $name)
-                
-                TextField("Cover URL", text: $coverURL)
-                    .keyboardType(.URL)
-                
-                TextField("Albums (comma-separated)", text: $albums)
             }
             
             Section {
-                Button(action: saveList) {
+                Button(action: {}) {
                     Text("Save")
                         .frame(maxWidth: .infinity)
                 }
-                .disabled(name.isEmpty || albums.isEmpty)
+                .disabled(name.isEmpty)
             }
         }
         .navigationTitle("New List")
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Cancel") {
-                    dismiss()
-                }
-            }
-        }
-    }
-    
-    private func saveList() {
-        let albumList = albums
-            .split(separator: ",")
-            .map { $0.trimmingCharacters(in: .whitespaces) }
-        
-        let list = ListModel(
-            name: name,
-            user_id: UUID().uuidString, // Replace with the real user ID
-            cover: URL(string: coverURL),
-            albums: albumList,
-            id: UUID().uuidString
-        )
-        
-        onSave(list)
-        dismiss()
     }
 }
 

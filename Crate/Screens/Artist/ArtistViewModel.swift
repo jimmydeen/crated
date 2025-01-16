@@ -2,6 +2,7 @@ import Foundation
 import Observation
 
 @Observable class ArtistViewModel {
+    let metadata: MetadataService = .shared
     var artist: ArtistModel
     var albums: [AlbumModel] = []
     
@@ -10,9 +11,10 @@ import Observation
     }
     
     public func retrieveAlbums() async {
-        guard albums.isEmpty else { return }
+        albums.removeAll()
+        
         do {
-            let newAlbums = try await MusicMetadataAPIService.fetchAlbumsByArtist(artistID: artist.id)
+            let newAlbums = try await metadata.fetchAlbumsByArtist(artistID: artist.id)
             self.albums = newAlbums
         } catch {
             print(error)

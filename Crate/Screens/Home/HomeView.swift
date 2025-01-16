@@ -2,8 +2,6 @@ import SwiftUI
 import Kingfisher
 
 struct HomeView: View {
-    @Environment(UserViewModel.self) private var userViewModel
-    
     @State var contextAlbum: AlbumModel?
     @State var contextPosition = CGPointZero
     @State var isDisplayingContext = false
@@ -23,7 +21,6 @@ struct HomeView: View {
     private let contextScalingFactor: CGFloat = 1.75
     private let gradientAnimationDuration: CGFloat = 2.0
     private let gradientOpacity: CGFloat = 1
-    private let paddingTop: CGFloat = 60
     private let userButtonCornerRadius: CGFloat = 24
     private let userButtonPaddingHorizontal: CGFloat = 20
     private let userButtonPaddingVertical: CGFloat = 10
@@ -38,10 +35,8 @@ struct HomeView: View {
             ZStack {
                 ScrollView(showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 0) {
-                        if !userViewModel.isAuthenticated {
-                            NavigationLink(
-                                destination: AccountView(viewModel: AccountViewModel(userViewModel: userViewModel))
-                            ) {
+                        if !viewModel.isAuthenticated {
+                            NavigationLink(destination: AccountView()) {
                                 ZStack {
                                     Image("accountpromptbg")
                                         .resizable()
@@ -102,15 +97,14 @@ struct HomeView: View {
                         }
                         .scrollTargetBehavior(.viewAligned)
                     }
-                    .padding(.top, paddingTop)
                 }
                 
-                if isDisplayingContext, let album = contextAlbum {
+                if isDisplayingContext {
                     ZStack {
                         VStack {
-                            if isDisplayingGradient {
+                            if let gradient = viewModel.gradient {
                                 LinearGradient(
-                                    gradient: viewModel.gradient,
+                                    gradient: gradient,
                                     startPoint: .top,
                                     endPoint: .center
                                 )
@@ -118,17 +112,7 @@ struct HomeView: View {
                                 .transition(.opacity)
                             }
                         }
-                        .task {
-                            if let gradient = await viewModel.fetchGradient(album) {
-                                await MainActor.run {
-                                    viewModel.gradient = gradient
-                                    withAnimation(.easeOut(duration: gradientAnimationDuration)) {
-                                        isDisplayingGradient = true
-                                    }
-                                }
-                            }
-                        }
-                        .zIndex(0)
+                        .ignoresSafeArea(.all)
                         
                         BackgroundBlurView()
                             .scaleEffect(auxiliaryContextDisplay ? BackgroundBlurViewScaling : 1)
@@ -142,9 +126,9 @@ struct HomeView: View {
                                     contextAlbum = nil
                                 }
                             }
-                            .zIndex(1)
+                            .ignoresSafeArea(.all)
                         
-                        KFImage(album.cover_hq)
+                        KFImage(contextAlbum!.cover_hq)
                             .resizable()
                             .frame(
                                 width: albumSize * (auxiliaryContextDisplay ? contextMenuScalingFactor : 1),
@@ -156,11 +140,10 @@ struct HomeView: View {
                                     auxiliaryContextDisplay = true
                                 }
                             }
-                            .zIndex(2)
+                            .ignoresSafeArea(.all)
                     }
                 }
             }
-            .ignoresSafeArea(edges: .top)
             .onAppear {
                 if viewModel.albums.count == 0 {
                     Task {
@@ -206,9 +189,7 @@ struct HomeAlbumView: View {
     private let pressDuration: CGFloat = 0.5
     
     var body: some View {
-        NavigationLink(
-            destination: AlbumView(viewModel: AlbumViewModel(album: album))
-        ) {
+        NavigationLink(destination: AlbumView(album: album)) {
             KFImage(album.cover_hq)
                 .resizable()
                 .opacity(contextAlbum?.id == album.id ? 0 : 1)
@@ -263,12 +244,5 @@ struct HomeAlbumPlaceholderView: View {
             .onAppear {
                 animate = true
             }
-    }
-}
-
-struct HomeViewPreview: PreviewProvider {
-    static var previews: some View {
-        TabsView()
-            .environment(UserViewModel())
     }
 }

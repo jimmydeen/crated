@@ -13,7 +13,7 @@ struct ActivityModel {
     let rating: Double?
     let user_id: String?
     
-    var description: String {
+    public var description: String {
         switch type {
         case .albumRating:
             let count = floor(rating ?? 0)

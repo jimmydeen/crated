@@ -4,6 +4,14 @@ import Kingfisher
 struct AlbumView: View {
     @State var viewModel: AlbumViewModel
     
+    init(album: AlbumModel) {
+        _viewModel = State(wrappedValue: AlbumViewModel(album: album))
+    }
+    
+    init(track: TrackModel) {
+        _viewModel = State(wrappedValue: AlbumViewModel(track: track))
+    }
+    
     private let buttonCornerRadius: CGFloat = 16
     private let buttonHeight: CGFloat = 22
     private let buttonPaddingHorizontal: CGFloat = 8
@@ -11,46 +19,65 @@ struct AlbumView: View {
     private let buttonWidth: CGFloat = UIScreen.main.bounds.width * 0.275
     private let coverShadowRadius: CGFloat = 6
     private let coverSize: CGFloat = UIScreen.main.bounds.width * 0.5
+    private let signInButtonPaddingVertical: CGFloat = 16
     private let tracklistPaddingHorizontal: CGFloat = UIScreen.main.bounds.width * 0.16
     private let tracklistPaddingTop: CGFloat = 32
     
     var body: some View {
         ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading) {
-                KFImage(viewModel.album.cover_hq)
-                    .resizable()
-                    .frame(height: coverSize)
-                    .shadow(radius: coverShadowRadius)
-                
-                Text(viewModel.album.name)
-                    .font(.title)
-                    .fontWeight(.semibold)
-                
-                Text(viewModel.album.artists.joined(separator: ", "))
-                    .foregroundColor(.gray)
-            }
-            .frame(width: coverSize)
-            
-            HStack {
-                ratingButton
-                
-                favoriteButton
-            }
-            .font(.subheadline)
-            .foregroundColor(.blue)
-            .padding(.bottom, tracklistPaddingTop)
-            
-            if !viewModel.tracks.isEmpty {
-                ForEach(viewModel.tracks, id: \.id) { track in
-                    TrackRomView(viewModel: $viewModel, track: track)
+            if viewModel.isLoaded {
+                VStack(alignment: .leading) {
+                    KFImage(viewModel.album!.cover_hq)
+                        .resizable()
+                        .frame(height: coverSize)
+                        .shadow(radius: coverShadowRadius)
                     
-                    Divider()
+                    Text(viewModel.album!.name)
+                        .font(.title)
+                        .fontWeight(.semibold)
+                    
+                    Text(viewModel.album!.artists.joined(separator: ", "))
+                        .foregroundColor(.gray)
                 }
-                .padding(.horizontal, tracklistPaddingHorizontal)
+                .frame(width: coverSize)
+                .task {
+                    await viewModel.fetchInfo()
+                }
+                
+                HStack {
+                    if viewModel.isAuthenticated {
+                        ratingButton
+                        
+                        favoriteButton
+                    } else {
+                        NavigationLink(destination: AccountView()) {
+                            Text("Sign in to rate and review")
+                                .frame(height: buttonHeight)
+                                .padding(.horizontal, signInButtonPaddingVertical)
+                                .padding(.vertical, buttonPaddingVertical)
+                                .background(Color.lightGray)
+                                .cornerRadius(buttonCornerRadius)
+                        }
+                    }
+                }
+                .font(.subheadline)
+                .foregroundColor(.blue)
+                .padding(.bottom, tracklistPaddingTop)
+                
+                if !viewModel.tracks.isEmpty {
+                    ForEach(viewModel.tracks, id: \.id) { track in
+                        TrackRowView(viewModel: $viewModel, track: track)
+                        
+                        Divider()
+                    }
+                    .padding(.horizontal, tracklistPaddingHorizontal)
+                }
             }
         }
         .task {
-            await viewModel.fetchTracksInfo()
+            if viewModel.isLoaded == false {
+                await viewModel.fetchAlbum()
+            }
         }
     }
     
@@ -72,7 +99,9 @@ struct AlbumView: View {
                 ForEach(Array(stride(from: 0.5, to: 5.5, by: 0.5)), id: \.self) { rating in
                     Button(
                         action: {
-                            viewModel.rateAlbum(rating)
+                            Task {
+                                await viewModel.rateAlbum(rating: rating)
+                            }
                         }
                     ) {
                         Rectangle()
@@ -109,8 +138,9 @@ struct AlbumView: View {
     }
 }
 
-struct TrackRomView: View {
+struct TrackRowView: View {
     @State var isLiked: Bool = false
+    
     @Binding var viewModel: AlbumViewModel
     
     let track: TrackModel
@@ -139,7 +169,7 @@ struct TrackRomView: View {
             Button(action: {
                 isLiked.toggle()
                 Task {
-                    await viewModel.favoriteTrack(track)
+                    await viewModel.favoriteTrack(track: track)
                 }
             }) {
                 Image(systemName: isLiked ? "heart.fill" : "heart")
@@ -155,6 +185,7 @@ struct TrackRomView: View {
 
 struct AlbumView_Previews: PreviewProvider {
     static var previews: some View {
-        AlbumView(viewModel: AlbumViewModel(album: MockData.album))
+        TabsView()
+            .environment(UserViewModel())
     }
 }

@@ -1,7 +1,6 @@
-//
-//  Untitled.swift
-//  Crate
-//
-//  Created by Andre Davis-Williams on 16/1/2025.
-//
+import Foundation
+import Observation
 
+@Observable class AddListViewModel {
+    var text: String?
+}

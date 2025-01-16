@@ -3,6 +3,7 @@ import Observation
 
 @Observable class ListViewModel {
     let list: ListModel
+    let metadata: MetadataService = .shared
     
     var albums: [AlbumModel] = []
     
@@ -12,8 +13,8 @@ import Observation
     
     func fetchAlbums() async {
         do {
-            for albumID in list.albums {
-                let album = try await MusicMetadataAPIService.fetchAlbumDetails(albumID: albumID)
+            for id in list.albums {
+                let album = try await metadata.fetchAlbumDetails(albumID: id)
                 albums.append(album)
             }
         } catch {

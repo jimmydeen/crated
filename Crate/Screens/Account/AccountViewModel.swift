@@ -1,44 +1,40 @@
 import Foundation
 import Observation
-import FirebaseFirestore
 
-@Observable class AccountViewModel {
-    var tab: AccountTab = .home
+@Observable class AccountViewModel: UserViewModel {
     var errorMessage: String? = nil
-    var successMessage: String? = nil
     var isLoading: Bool = false
+    var successMessage: String? = nil
+    var tab: AccountTab = .home
+
+    // MARK: Authentication
     
-    let userViewModel: UserViewModel
-
-    init(userViewModel: UserViewModel) {
-        self.userViewModel = userViewModel
-    }
-
-    func signIn(email: String, password: String) async {
+    public func signIn(email: String, password: String) async {
         isLoading = true
         errorMessage = nil
         do {
-            try await userViewModel.signIn(email: email, password: password)
+            try await user.signIn(email: email, password: password)
             successMessage = "Successfully signed in!"
         } catch {
-            errorMessage = userViewModel.errorMessage
+            errorMessage = error.localizedDescription
         }
         isLoading = false
     }
-    
-    func signUp(username: String, email: String, password: String) async {
+    public func signUp(username: String, email: String, password: String) async {
         isLoading = true
         errorMessage = nil
         do {
-            try await userViewModel.signUp(username: username, email: email, password: password)
+            try await user.signUp(username: username, email: email, password: password)
             successMessage = "Successfully created account!"
         } catch {
-            errorMessage = userViewModel.errorMessage
+            errorMessage = error.localizedDescription
         }
         isLoading = false
     }
     
-    enum AccountTab: String {
-        case home, emailSignIn, emailSignUp, googleSignIn
+    // MARK: Tabs
+    
+    public enum AccountTab {
+        case home, emailSignIn, emailSignUp
     }
 }

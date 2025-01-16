@@ -6,6 +6,10 @@ struct ListView: View {
     @State var isRenaming: Bool = false
     @State var isSharing: Bool = false
     
+    init(list: ListModel) {
+        _viewModel = State(wrappedValue: ListViewModel(list: list))
+    }
+    
     private let indexPaddingLeading: CGFloat = 6
     private let shareCoverSize: CGFloat = UIScreen.main.bounds.width * 0.5
     private let trackCornerRadius: CGFloat = 12
@@ -30,7 +34,9 @@ struct ListView: View {
                     .padding(.horizontal)
                     
                     ForEach(Array(viewModel.albums.enumerated()), id: \.element.id) { index, album in
-                        listItem(album: album, index: index + 1)
+                        NavigationLink(destination: AlbumView(album: album)) {
+                            listItem(album: album, index: index + 1)
+                        }
                     }
                     
                     Spacer()
@@ -61,6 +67,7 @@ struct ListView: View {
             VStack(alignment: .leading) {
                 Text(album.name)
                     .foregroundColor(.black)
+                    .multilineTextAlignment(.leading)
                 
                 Text(album.artists.joined(separator: ", "))
                     .foregroundColor(.gray)
@@ -99,14 +106,14 @@ struct ListView: View {
                 }
             
             if viewModel.list.albums.count > 2 {
-                shareScreenCover(url: viewModel.albums[2].cover_hq)
-                shareScreenCover(url: viewModel.albums[1].cover_hq)
-                shareScreenCover(url: viewModel.albums[0].cover_hq)
+                shareScreenCover(url: viewModel.albums[2].cover_hq!)
+                shareScreenCover(url: viewModel.albums[1].cover_hq!)
+                shareScreenCover(url: viewModel.albums[0].cover_hq!)
             } else if viewModel.list.albums.count > 1 {
-                shareScreenCover(url: viewModel.albums[1].cover_hq)
-                shareScreenCover(url: viewModel.albums[0].cover_hq)
+                shareScreenCover(url: viewModel.albums[1].cover_hq!)
+                shareScreenCover(url: viewModel.albums[0].cover_hq!)
             } else {
-                shareScreenCover(url: viewModel.albums[0].cover_hq)
+                shareScreenCover(url: viewModel.albums[0].cover_hq!)
             }
         }
     }
@@ -120,6 +127,7 @@ struct ListView: View {
 
 struct ListViewPreview: PreviewProvider {
     static var previews: some View {
-        ListView(viewModel: ListViewModel(list: MockData.list))
+        TabsView()
+            .environment(UserViewModel())
     }
 }

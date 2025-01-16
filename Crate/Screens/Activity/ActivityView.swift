@@ -1,8 +1,9 @@
 import SwiftUI
 
 struct ActivityView: View {
-    @State private var viewModel = ActivityViewModel()
+    @State var viewModel = ActivityViewModel()
     
+    private let activityCornerRadius: CGFloat = 12
     private let activityPadding: CGFloat = 6
     
     var body: some View {
@@ -18,10 +19,14 @@ struct ActivityView: View {
                         }
                         .padding(activityPadding)
                         .background(Color.lightGray)
+                        .cornerRadius(activityCornerRadius)
                     }
                 }
             }
             .navigationTitle("Activity")
+            .task {
+                await viewModel.fetchActivities()
+            }
         }
     }
 }
@@ -29,5 +34,6 @@ struct ActivityView: View {
 struct ActivityViewPreview: PreviewProvider {
     static var previews: some View {
         TabsView()
+            .environment(UserViewModel())
     }
 }

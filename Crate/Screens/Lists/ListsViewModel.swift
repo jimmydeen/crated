@@ -1,16 +1,15 @@
 import Foundation
 import Observation
 
-@Observable class ListsViewModel {
+@Observable class ListsViewModel: UserViewModel {
     var lists: [ListModel] = []
     
-    let userViewModel: UserViewModel
-
-    init(userViewModel: UserViewModel) {
-        self.userViewModel = userViewModel
-    }
-    
     func fetchLists() async {
-        
+        lists.removeAll()
+        do {
+            lists = try await user.retrieveLists()
+        } catch {
+            print(error)
+        }
     }
 }

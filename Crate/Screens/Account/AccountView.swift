@@ -1,64 +1,43 @@
 import SwiftUI
 
 struct AccountView: View {
-    @State private var tab: AccountTab = .home
-    @State private var homeMarqueeHeight: CGFloat = UIScreen.main.bounds.height * 0.5
-    
-    @State var viewModel: AccountViewModel
+    @State var viewModel = AccountViewModel()
     
     private let homeButtonWidth: CGFloat = 240
     private let homeButtonCornerRadius: CGFloat = 12
     private let homeButtonPaddingHorizontal: CGFloat = 16
     private let homeButtonPaddingVertical: CGFloat = 8
     private let homeMarqueeCornerRadius: CGFloat = 12
-    private let homeMarqueeHeightNormal: CGFloat = UIScreen.main.bounds.height * 0.5
+    private let homeMarqueeHeightNormal: CGFloat = UIScreen.main.bounds.height * 0.4
     private let homeMarqueeHeightSignUp: CGFloat = UIScreen.main.bounds.height * 0.3
     private let homeMarqueePaddingBottom: CGFloat = UIScreen.main.bounds.height * 0.05
     private let homeMarqueeWidth: CGFloat = UIScreen.main.bounds.width * 0.9
-    private let homePaddingBottom: CGFloat = UIScreen.main.bounds.height * 0.05
     
     var body: some View {
         ZStack {
             VStack {
-                Image("accountbg")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(
-                        width: homeMarqueeWidth,
-                        height: tab == .emailSignUp ? homeMarqueeHeightSignUp : homeMarqueeHeightNormal
-                    )
-                    .clipped()
-                    .cornerRadius(homeMarqueeCornerRadius)
-                    .padding(.bottom, homeMarqueePaddingBottom)
-                
-                if tab == .home {
-                    VStack {
-                        homeButton(text: "Google Sign In", tab: .googleSignIn)
-                            .padding(.bottom)
-                        homeButton(text: "Sign In", tab: .emailSignIn)
-                        homeButton(text: "Create account", tab: .emailSignUp)
-                    }
-                }
-                if tab == .emailSignIn {
-                    SignInFormView(viewModel: $viewModel)
-                }
-                if tab == .emailSignUp {
-                    SignUpFormView(viewModel: $viewModel)
+                switch viewModel.tab {
+                    case .home: accountHome
+                    case .emailSignIn: SignInFormView(viewModel: $viewModel)
+                    case .emailSignUp: SignUpFormView(viewModel: $viewModel)
                 }
                 
                 Spacer()
             }
-            .padding(.bottom, homePaddingBottom)
         }
     }
     
-    private enum AccountTab: String {
-        case home, emailSignIn, emailSignUp, googleSignIn
+    private var accountHome: some View {
+        VStack {
+            homeButton(tab: .emailSignIn, text: "Sign In")
+            homeButton(tab: .emailSignUp, text: "Create account")
+        }
     }
-    private func homeButton(text: String, tab: AccountTab) -> some View {
+    
+    private func homeButton(tab: AccountViewModel.AccountTab, text: String) -> some View {
         Button(
             action: {
-                self.tab = tab
+                viewModel.tab = tab
             }
         ) {
             Text(text)
@@ -260,6 +239,7 @@ struct SignUpFormView: View {
 
 struct AccountViewPreview: PreviewProvider {
     static var previews: some View {
-        AccountView(viewModel: AccountViewModel(userViewModel: UserViewModel()))
+        TabsView()
+            .environment(UserViewModel())
     }
 }

@@ -1,45 +1,50 @@
 import Foundation
 import Observation
 
-public enum SearchSegment: String {
-    case album, artist, track
-}
-
 @Observable class SearchViewModel {
+    let metadata: MetadataService = .shared
+    let querySize: Int = 20
+    
     var query: String = "" {
+       didSet {
+           self.results.removeAll()
+           if results.isEmpty {
+               Task {
+                   await fetchResults()
+               }
+           }
+        }
+    }
+    var segment: SearchSegment = .album {
         didSet {
-            Task {
-                await newQuery()
+            self.results.removeAll()
+            if results.isEmpty {
+                Task {
+                    await fetchResults()
+                }
             }
         }
     }
     var results: [ResultProtocol] = []
-    var segment = SearchSegment.album {
-        didSet {
-            Task {
-                await newQuery()
-            }
-        }
-    }
     
-    private var isFetching: Bool = false
-    
-    private func newQuery() async {
-        results = []
-        if !query.isEmpty {
-            await fetchResults()
-        }
-    }
     public func fetchResults() async {
         do {
-            let result = try await MusicMetadataAPIService.performSearch(
+            let count = results.count
+            let results = try await metadata.performSearch(
                 query: query,
                 type: segment,
-                range: results.count..<results.count + 20
+                range: count..<count + 1 + querySize
             )
-            results.append(contentsOf: result)
+            for result in results {
+                if !self.results.contains(where: { $0.id == result.id }) {
+                    self.results.append(result)
+                }
+            }
         } catch {
             print(error)
         }
+    }
+    public enum SearchSegment: String, CaseIterable {
+        case album, artist, track
     }
 }
