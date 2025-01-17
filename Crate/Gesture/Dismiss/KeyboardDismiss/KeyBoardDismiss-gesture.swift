@@ -4,28 +4,38 @@ import SwiftUI
 struct DismissKeyboardModifier: ViewModifier {
     let dismissOnTap: Bool
     let dismissOnSwipe: Bool
+    @FocusState.Binding var isFocused: Bool
 
     func body(content: Content) -> some View {
-        content
-            .highPriorityGesture(
-                DragGesture().onChanged { _ in
-                    if dismissOnSwipe {
+        if (isFocused) {
+            content
+                .highPriorityGesture(
+                    DragGesture().onChanged { _ in
+                        if dismissOnSwipe {
+                            resignKeyboard()
+                        }
+                    }
+                )
+                .onTapGesture {
+                    if dismissOnTap {
                         resignKeyboard()
                     }
                 }
-            )
-            .onTapGesture {
-                if dismissOnTap {
-                    resignKeyboard()
-                }
-            }
+        } else {
+            content
+        }
     }
 }
 
 // Extension to make the modifier easier to apply
 extension View {
-    func dismissKeyboardOnInteraction(tap: Bool = true, swipe: Bool = true) -> some View {
-        self.modifier(DismissKeyboardModifier(dismissOnTap: tap, dismissOnSwipe: swipe))
+    func dismissKeyboard(tap: Bool = true, swipe: Bool = true) {
+        UIApplication.shared.sendAction(
+            #selector(UIResponder.resignFirstResponder),
+            to: nil,
+            from: nil,
+            for: nil
+        )
     }
 }
 

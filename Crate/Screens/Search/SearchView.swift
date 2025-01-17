@@ -6,36 +6,56 @@ struct SearchView: View {
     @FocusState private var isSearchFieldFocused: Bool
     
     private let coverSize: CGFloat = 48
-    private let coverToDetailsSpacing: CGFloat = 12
     private let detailsLineSpacing: CGFloat = 6
     private let resultBoxCornerRadius: CGFloat = 8
     private let resultBoxPadding: CGFloat = 8
     
     var body: some View {
         NavigationStack {
-            ScrollView(showsIndicators: false) {
-                LazyVStack {
-                    // Custom Search Bar
-                  HStack {
-                      TextField("Search", text: $viewModel.query)
-                          .padding(.vertical, 8)
-                          .padding(.horizontal)
-                          .focused($isSearchFieldFocused)
-                          .background(Color(.systemGray6))
-                          .cornerRadius(8)
-                  }
-                  .padding(.horizontal, 2)
-                    picker
-                    results
-                }
-                .padding(.horizontal)
-                .navigationTitle("Search")
+            // 1) Put your entire pinned header in a top VStack
+            VStack(spacing: 0) {
                 
+                // 2) Custom “header” (title + search bar + picker)
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Search")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                    
+                    searchBar
+                    picker
+                }
+                .padding()  // Adjust to match your desired spacing
+                .background(Color(.systemBackground))
+                
+//                // 3) The divider (optional)
+//                Divider()
+//                
+                // 4) Scrollable area with results
+                ScrollView(showsIndicators: false) {
+                    results
+                        .padding(.horizontal)
+                }
             }
-            .dismissKeyboardOnInteraction(tap: true, swipe: true)
+            .onTapGesture {
+                dismissKeyboard();
+            }
+            .scrollDismissesKeyboard(.immediately)
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarHidden(true) // Hides the default navigation bar
         }
     }
     
+    // MARK: - Search Bar
+    var searchBar: some View {
+        TextField("Search", text: $viewModel.query)
+            .padding(.vertical, 8)
+            .padding(.horizontal)
+            .focused($isSearchFieldFocused)
+            .background(Color(.systemGray6))
+            .cornerRadius(8)
+    }
+    
+    // MARK: - Picker
     var picker: some View {
         Picker("Search Segment", selection: $viewModel.segment) {
             Text("Albums").tag(SearchViewModel.SearchSegment.album)
@@ -45,6 +65,7 @@ struct SearchView: View {
         .pickerStyle(SegmentedPickerStyle())
     }
     
+    // MARK: - Results
     var results: some View {
         ForEach(Array(viewModel.results.enumerated()), id: \.offset) { index, result in
             if !viewModel.results.isEmpty, index > 0, index % 20 == 0 {
@@ -58,6 +79,7 @@ struct SearchView: View {
         }
     }
     
+    // MARK: - Single Result
     func searchResult(result: ResultProtocol) -> some View {
         NavigationLink(destination: result.searchView()) {
             HStack(alignment: .center) {
@@ -68,24 +90,16 @@ struct SearchView: View {
                     }
                     .frame(width: coverSize, height: coverSize)
                 
-                VStack(alignment: .leading) {
-                    Spacer()
-                    
+                VStack(alignment: .leading, spacing: detailsLineSpacing) {
                     Text(result.name)
+                        .font(.subheadline)
                     
                     if !result.artists.isEmpty {
-                        Spacer()
-                            .frame(height: detailsLineSpacing)
-                        
                         Text(result.artists.joined(separator: ", "))
                             .foregroundColor(.gray)
+                            .font(.caption)
                     }
-                    
-                    Spacer()
                 }
-                .frame(height: coverSize)
-                .font(.subheadline)
-                
                 Spacer()
             }
             .padding(resultBoxPadding)
