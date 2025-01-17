@@ -3,6 +3,7 @@ import Kingfisher
 
 struct SearchView: View {
     @State var viewModel = SearchViewModel()
+    @FocusState private var isSearchFieldFocused: Bool
     
     private let coverSize: CGFloat = 48
     private let coverToDetailsSpacing: CGFloat = 12
@@ -14,13 +15,24 @@ struct SearchView: View {
         NavigationStack {
             ScrollView(showsIndicators: false) {
                 LazyVStack {
+                    // Custom Search Bar
+                  HStack {
+                      TextField("Search", text: $viewModel.query)
+                          .padding(.vertical, 8)
+                          .padding(.horizontal)
+                          .focused($isSearchFieldFocused)
+                          .background(Color(.systemGray6))
+                          .cornerRadius(8)
+                  }
+                  .padding(.horizontal, 2)
                     picker
                     results
                 }
-                .searchable(text: $viewModel.query, prompt: "Search")
                 .padding(.horizontal)
                 .navigationTitle("Search")
+                
             }
+            .dismissKeyboardOnInteraction(tap: true, swipe: true)
         }
     }
     

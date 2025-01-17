@@ -66,6 +66,7 @@
 		65CDC2DB2D38C16E0061EE64 /* AddListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65CDC2DA2D38C16B0061EE64 /* AddListView.swift */; };
 		65CDC2DD2D38C37E0061EE64 /* AddListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65CDC2DC2D38C37C0061EE64 /* AddListViewModel.swift */; };
 		65E9A6F62C9BB0E400EF1867 /* ListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65E9A6F52C9BB0E000EF1867 /* ListViewModel.swift */; };
+		69B02F372D3A796500E3EBF1 /* KeyBoardDismiss-gesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69B02F362D3A794D00E3EBF1 /* KeyBoardDismiss-gesture.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -120,6 +121,7 @@
 		65CDC2DA2D38C16B0061EE64 /* AddListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddListView.swift; sourceTree = "<group>"; };
 		65CDC2DC2D38C37C0061EE64 /* AddListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddListViewModel.swift; sourceTree = "<group>"; };
 		65E9A6F52C9BB0E000EF1867 /* ListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListViewModel.swift; sourceTree = "<group>"; };
+		69B02F362D3A794D00E3EBF1 /* KeyBoardDismiss-gesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "KeyBoardDismiss-gesture.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -162,6 +164,8 @@
 		651C280E2C470FF500FFE3A6 /* Crate */ = {
 			isa = PBXGroup;
 			children = (
+				69B02F392D3A7CC700E3EBF1 /* Gesture */,
+				69B02F352D3A794500E3EBF1 /* Components */,
 				651C28342C47105B00FFE3A6 /* Common */,
 				651C28282C47105B00FFE3A6 /* Models */,
 				651C28152C470FF600FFE3A6 /* Preview Content */,
@@ -407,6 +411,45 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		69B02F352D3A794500E3EBF1 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				69B02F382D3A797D00E3EBF1 /* SearchBar */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		69B02F382D3A797D00E3EBF1 /* SearchBar */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = SearchBar;
+			sourceTree = "<group>";
+		};
+		69B02F392D3A7CC700E3EBF1 /* Gesture */ = {
+			isa = PBXGroup;
+			children = (
+				69B02F3A2D3A7CCF00E3EBF1 /* Dismiss */,
+			);
+			path = Gesture;
+			sourceTree = "<group>";
+		};
+		69B02F3A2D3A7CCF00E3EBF1 /* Dismiss */ = {
+			isa = PBXGroup;
+			children = (
+				69B02F3B2D3A7CD500E3EBF1 /* KeyboardDismiss */,
+			);
+			path = Dismiss;
+			sourceTree = "<group>";
+		};
+		69B02F3B2D3A7CD500E3EBF1 /* KeyboardDismiss */ = {
+			isa = PBXGroup;
+			children = (
+				69B02F362D3A794D00E3EBF1 /* KeyBoardDismiss-gesture.swift */,
+			);
+			path = KeyboardDismiss;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -513,6 +556,7 @@
 				6557C9C72C91352A0077F3D9 /* View+Extensions.swift in Sources */,
 				65C561862D2A504A000C71AA /* DateUtilities.swift in Sources */,
 				652C9FED2D31249A00379380 /* ReviewsView.swift in Sources */,
+				69B02F372D3A796500E3EBF1 /* KeyBoardDismiss-gesture.swift in Sources */,
 				65A0D4D02C4FADF800246367 /* SearchViewModel.swift in Sources */,
 				652CDA772C8CA207006810C8 /* PlaceholderView.swift in Sources */,
 				65CDC2DB2D38C16E0061EE64 /* AddListView.swift in Sources */,
@@ -675,6 +719,7 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				"IPHONEOS_DEPLOYMENT_TARGET[sdk=iphoneos*]" = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -710,6 +755,7 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				"IPHONEOS_DEPLOYMENT_TARGET[sdk=iphoneos*]" = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
