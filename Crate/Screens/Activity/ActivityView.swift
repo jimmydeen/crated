@@ -34,6 +34,6 @@ struct ActivityView: View {
 struct ActivityViewPreview: PreviewProvider {
     static var previews: some View {
         TabsView()
-            .environment(UserViewModel())
+            .environment(DisplayViewModel())
     }
 }

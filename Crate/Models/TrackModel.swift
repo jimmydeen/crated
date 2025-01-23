@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-struct TrackModel: ResultProtocol, Hashable {
+struct TrackModel: SearchResult, Hashable {
     let name: String
     let id: String
     let artists: [String]
@@ -10,7 +10,11 @@ struct TrackModel: ResultProtocol, Hashable {
     let album_id: String
     let index: Int
     
-    public func searchView() -> AnyView {
+    var subtitle: String {
+        return artists.joined(separator: ", ")
+    }
+    
+    func searchView() -> AnyView {
         return AnyView(AlbumView(track: self))
     }
 }

@@ -1,10 +1,11 @@
 import Foundation
 import SwiftUI
 
-struct UserModel: Codable {
+struct UserModel: Codable, SearchResult {
     let name: String
     let id: String
-    let cover: String?
+    var cover_hq: URL?
+    var cover_lq: URL?
     let date_joined: Date
     var album_ratings: [String: Double]
     var favorite_albums: [String]
@@ -13,8 +14,9 @@ struct UserModel: Codable {
     
     init(
         name: String,
-        id: String,
-        cover: String? = nil,
+        id: String = UUID().uuidString,
+        cover_hq: URL? = nil,
+        cover_lq: URL? = nil,
         date_joined: Date = .now,
         album_ratings: [String: Double] = [:],
         favorite_albums: [String] = [],
@@ -23,7 +25,8 @@ struct UserModel: Codable {
     ) {
         self.name = name
         self.id = id
-        self.cover = cover
+        self.cover_hq = cover_hq
+        self.cover_lq = cover_lq
         self.date_joined = date_joined
         self.album_ratings = album_ratings
         self.favorite_albums = favorite_albums
@@ -35,9 +38,16 @@ struct UserModel: Codable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.name = try container.decode(String.self, forKey: .name)
         self.id = try container.decode(String.self, forKey: .id)
-        self.cover = try container.decodeIfPresent(String.self, forKey: .cover)
+        let cover_hq = try container.decodeIfPresent(String.self, forKey: .cover_hq)
+        let cover_lq = try container.decodeIfPresent(String.self, forKey: .cover_lq)
         
-        // Handle date conversion from timestamp
+        if cover_hq != nil {
+            self.cover_hq = URL(string: cover_hq!)
+        }
+        if cover_lq != nil {
+            self.cover_lq = URL(string: cover_lq!)
+        }
+        
         let timestamp = try container.decodeIfPresent(TimeInterval.self, forKey: .date_joined)
         self.date_joined = Date(timeIntervalSince1970: timestamp ?? Date().timeIntervalSince1970)
         
@@ -45,5 +55,13 @@ struct UserModel: Codable {
         self.favorite_albums = try container.decodeIfPresent([String].self, forKey: .favorite_albums) ?? []
         self.favorite_tracks = try container.decodeIfPresent([String: [String]].self, forKey: .favorite_tracks) ?? [:]
         self.friends = try container.decodeIfPresent([String].self, forKey: .friends) ?? []
+    }
+    
+    var subtitle: String {
+        return ""
+    }
+    
+    func searchView() -> AnyView {
+        return AnyView(Text(name))
     }
 }

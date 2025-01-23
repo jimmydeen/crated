@@ -10,7 +10,7 @@ struct ListsView: View {
                 ForEach(viewModel.lists, id: \.id) { list in
                     NavigationLink(destination: ListView(list: list)) {
                         HStack {
-                            KFImage(list.cover)
+                            KFImage(list.cover_hq)
                                 .resizable()
                                 .placeholder {
                                     PlaceholderView()
@@ -44,6 +44,6 @@ struct ListsView: View {
 struct ListsViewPreview: PreviewProvider {
     static var previews: some View {
         ListsView()
-            .environment(UserViewModel())
+            .environment(DisplayViewModel())
     }
 }

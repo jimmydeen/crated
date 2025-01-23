@@ -193,7 +193,7 @@ import Observation
         return snapshot.documents.compactMap { doc in
             let name = doc["name"] as? String ?? ""
             let albums = doc["albums"] as? [String] ?? []
-            return ListModel(name: name, user_id: user!.id, cover: nil, albums: albums, id: doc.documentID)
+            return ListModel(name: name, user_id: user!.id, cover_hq: nil, cover_lq: nil, albums: albums, id: doc.documentID)
         }
     }
     public func addToList(album: AlbumModel, list: ListModel) async throws {
@@ -257,9 +257,9 @@ import Observation
             let description = doc["description"] as? String
             let rating = doc["rating"] as? Double
             return ReviewModel(
-                album: album_id,
+                album_id: album_id,
                 type: ReviewModel.ReviewType.rating,
-                title: title ?? nil,
+                title: title ?? "",
                 rating: rating ?? nil,
                 description: description ?? nil
             )
@@ -293,17 +293,24 @@ import Observation
         let user = try dictDecoder.decode(UserModel.self, from: data)
         self.user = user
     }
+    public func retrieveUsers(query: String, page: Int, batchSize: Int) async throws -> [UserModel] {
+        guard isAuthenticated else { throw AuthenticationError.notAuthenticated }
+        
+        return []
+    }
     public func retrieveName() throws -> String {
         guard isAuthenticated else { throw AuthenticationError.notAuthenticated }
         return user!.name
     }
-    public func retrieveProfileURL() throws -> URL? {
+    public func retrieveProfileCoverLQ() throws -> URL? {
         guard isAuthenticated else { throw AuthenticationError.notAuthenticated }
-        if user!.cover != nil {
-            return URL(string: user!.cover!)
-        } else {
-            return nil
-        }
+        
+        return user!.cover_lq
+    }
+    public func retrieveProfileCoverHQ() throws -> URL? {
+        guard isAuthenticated else { throw AuthenticationError.notAuthenticated }
+        
+        return user!.cover_hq
     }
     
     // MARK: Errors

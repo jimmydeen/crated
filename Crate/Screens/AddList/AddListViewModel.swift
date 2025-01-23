@@ -1,6 +1,7 @@
-import Foundation
+import UIKit
 import Observation
 
 @Observable class AddListViewModel {
-    var text: String?
+    var name: String = ""
+    var profileImage: UIImage?
 }

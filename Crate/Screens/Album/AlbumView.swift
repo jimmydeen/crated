@@ -185,7 +185,7 @@ struct TrackRowView: View {
 
 struct AlbumView_Previews: PreviewProvider {
     static var previews: some View {
-        TabsView()
-            .environment(UserViewModel())
+        AlbumView(album: MockData.album)
+            .environment(DisplayViewModel())
     }
 }

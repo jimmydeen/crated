@@ -11,7 +11,7 @@ import Observation
             let reviews = try await user.retrieveReviews()
             
             for review in reviews {
-                let album = try await metadata.fetchAlbumDetails(albumID: review.album)
+                let album = try await metadata.fetchAlbumDetails(albumID: review.album_id)
                 self.reviews.updateValue(review, forKey: album)
             }
         } catch {

@@ -2,15 +2,16 @@ import Foundation
 import Observation
 
 @Observable class AddReviewViewModel: UserViewModel {
-    let metadata: MetadataService = .shared
+    private let metadata: MetadataService = .shared
+    private let batchSize: Int = 20
+    
+    private var page: Int = 0
     
     var album: AlbumModel?
     var description: String = ""
     var query: String = "" {
-        willSet {
-            self.results.removeAll()
-        }
         didSet {
+            self.albums.removeAll()
             if !query.isEmpty {
                 Task {
                     await fetchResults()
@@ -18,21 +19,22 @@ import Observation
             }
         }
     }
-    var results: [AlbumModel] = []
+    var albums: [AlbumModel] = []
     var tab: ReviewTab = .search
     var title: String = ""
     
-    private let batchSize: Int = 20
+    // MARK: Fetch Results
     
     public func fetchResults() async {
         do {
-            let albums = try await metadata.performSearch(
+            let albums = try await metadata.search(
                 query: query,
-                type: SearchViewModel.SearchSegment.album,
-                range: results.count..<results.count + batchSize
+                type: .album,
+                page: page,
+                batchSize: batchSize
             )
             for album in albums {
-                results.append(album as! AlbumModel)
+                self.albums.append(album as! AlbumModel)
             }
         } catch {
             print(error)

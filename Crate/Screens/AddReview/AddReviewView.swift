@@ -93,27 +93,21 @@ struct AddReviewView: View {
     private var searchBody: some View {
         ScrollView(showsIndicators: false) {
             LazyVStack {
-                ForEach(viewModel.results, id: \.id) { album in
-                    Button(
-                        action: {
-                            viewModel.selectAlbum(album: album)
-                        },
-                        label: {
-                            searchResult(result: album)
-                        }
-                    )
-                    .if(album.id == viewModel.results.last?.id) { view in
-                        view.task {
-                            await viewModel.fetchResults()
-                        }
+                ForEach(Array(viewModel.albums.enumerated()), id: \.offset) { n, album in
+                    if n > 0, n % 20 == 0 {
+                        searchResult(result: album)
+                            .task {
+                                await viewModel.fetchResults()
+                            }
+                    } else {
+                        searchResult(result: album)
                     }
                 }
             }
-            .searchable(text: $viewModel.query, prompt: "Search")
         }
     }
     
-    private func searchResult(result: ResultProtocol) -> some View {
+    private func searchResult(result: SearchResult) -> some View {
         HStack(alignment: .center) {
             KFImage(result.cover_hq)
                 .resizable()
@@ -127,11 +121,11 @@ struct AddReviewView: View {
                 
                 Text(result.name)
                 
-                if !result.artists.isEmpty {
+                if !result.subtitle.isEmpty {
                     Spacer()
                         .frame(height: searchResultSpacing)
                     
-                    Text(result.artists.joined(separator: ", "))
+                    Text(result.subtitle)
                         .foregroundColor(.gray)
                 }
                 
@@ -205,9 +199,9 @@ struct AddReviewView: View {
     }
 }
 
-struct ReviewViewPreview: PreviewProvider {
+struct AddReviewViewPreview: PreviewProvider {
     static var previews: some View {
         TabsView()
-            .environment(UserViewModel())
+            .environment(DisplayViewModel())
     }
 }

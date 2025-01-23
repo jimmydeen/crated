@@ -4,7 +4,7 @@ import Observation
 @Observable class ProfileViewModel: UserViewModel {
     func fetchProfileURL() -> URL? {
         do {
-            return try user.retrieveProfileURL()
+            return try user.retrieveProfileCoverHQ()
         } catch {
             print(error)
             return nil

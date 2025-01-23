@@ -1,10 +1,8 @@
 import SwiftUI
 
-enum Tab {
-    case home, search, activity, profile
-}
-
 struct TabsView: View {
+    @Environment(DisplayViewModel.self) private var displayViewModel
+    
     @State private var tab: Tab = .home
     @State private var isReviewing: Bool = false
     
@@ -13,8 +11,8 @@ struct TabsView: View {
     @State private var activityView = ActivityView()
     @State private var profileView = ProfileView()
     
-    private let navBarButtonHeight: CGFloat = UIScreen.main.bounds.height * 0.06
-    private let navBarButtonWidth: CGFloat = UIScreen.main.bounds.width * 0.15
+    private let navBarHeight: CGFloat = UIScreen.main.bounds.height * 0.08
+    private let navBarPaddingHorizontal: CGFloat = 32
     
     var body: some View {
         ZStack {
@@ -26,15 +24,20 @@ struct TabsView: View {
                     case .profile: profileView
                 }
                 
-                HStack {
-                    navButton(icon: "house.fill") { tab = .home }
-                    navButton(icon: "magnifyingglass") { tab = .search }
-                    navButton(icon: "plus.circle.fill") { isReviewing = true }
-                    navButton(icon: "list.bullet.rectangle.fill") { tab = .activity }
-                    navButton(icon: "person.crop.circle.fill") { tab = .profile }
+                if displayViewModel.isShowingNavBar {
+                    HStack {
+                        navButton(icon: "house.fill") { tab = .home }
+                        Spacer()
+                        navButton(icon: "magnifyingglass") { tab = .search }
+                        Spacer()
+                        navButton(icon: "plus.circle.fill") { isReviewing = true }
+                        Spacer()
+                        navButton(icon: "list.bullet.rectangle.fill") { tab = .activity }
+                        Spacer()
+                        navButton(icon: "person.crop.circle.fill") { tab = .profile }
+                    }
+                    .padding(.horizontal, navBarPaddingHorizontal)
                 }
-                .frame(width: UIScreen.main.bounds.width)
-                .background(Color.white)
             }
             
             if isReviewing {
@@ -56,15 +59,18 @@ struct TabsView: View {
         Button(action: action) {
             Image(systemName: icon)
                 .font(.title)
-                .frame(width: navBarButtonWidth, height: navBarButtonHeight)
                 .foregroundColor(.black)
         }
+    }
+    
+    private enum Tab {
+        case home, search, activity, profile
     }
 }
 
 struct TabsViewPreview: PreviewProvider {
     static var previews: some View {
         TabsView()
-            .environment(UserViewModel())
+            .environment(DisplayViewModel())
     }
 }

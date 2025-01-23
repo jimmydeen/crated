@@ -106,12 +106,13 @@ class MetadataService {
         let response = try decode(SpotifyAlbumTracksModel.self, from: data)
         return response.items.map { $0.toModel(for: album) }
     }
-    public func performSearch(
+    public func search(
         query: String,
-        type: SearchViewModel.SearchSegment,
-        range: Range<Int>
-    ) async throws -> [ResultProtocol] {
-        let urlString = "https://api.spotify.com/v1/search?q=\(query)&type=\(type.rawValue)&market=\(clientRegion)&limit=\(range.count)&offset=\(range.lowerBound)"
+        type: SearchSegment,
+        page: Int,
+        batchSize: Int
+    ) async throws -> [SearchResult] {
+        let urlString = "https://api.spotify.com/v1/search?q=\(query)&type=\(type.rawValue)&market=\(clientRegion)&limit=\(batchSize)&offset=\(page*batchSize)"
         guard let url = URL(string: urlString) else {
             throw SpotifyAPIError.invalidURL
         }
@@ -124,7 +125,7 @@ class MetadataService {
         case .artist:
             let response = try decode(SearchResponseArtistsModel.self, from: data)
             return response.artists.items.map { $0.toModel() }
-        case .track:
+        default:
             let response = try decode(SearchResponseTracksModel.self, from: data)
             return response.tracks.items.map { $0.toModel() }
         }
@@ -232,7 +233,6 @@ class MetadataService {
             return ArtistModel(
                 name: name,
                 id: id,
-                artists: [],
                 cover_hq: coverHQ,
                 cover_lq: coverLQ
             )

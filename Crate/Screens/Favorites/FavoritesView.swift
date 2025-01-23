@@ -51,6 +51,6 @@ struct FavoritesView: View {
 struct FavoritesViewPreview: PreviewProvider {
     static var previews: some View {
         FavoritesView()
-            .environment(UserViewModel())
+            .environment(DisplayViewModel())
     }
 }

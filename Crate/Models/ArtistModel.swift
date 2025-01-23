@@ -1,14 +1,17 @@
 import Foundation
 import SwiftUI
 
-struct ArtistModel: ResultProtocol, Hashable {
+struct ArtistModel: SearchResult, Hashable {
     let name: String
     let id: String
-    let artists: [String]
     let cover_hq: URL?
     let cover_lq: URL?
     
-    public func searchView() -> AnyView {
+    var subtitle: String {
+        return ""
+    }
+    
+    func searchView() -> AnyView {
         return AnyView(ArtistView(artist: self))
     }
 }

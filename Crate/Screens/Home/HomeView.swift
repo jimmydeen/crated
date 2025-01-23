@@ -246,3 +246,10 @@ struct HomeAlbumPlaceholderView: View {
             }
     }
 }
+
+struct HomeViewPreview: PreviewProvider {
+    static var previews: some View {
+        HomeView()
+            .environment(DisplayViewModel())
+    }
+}

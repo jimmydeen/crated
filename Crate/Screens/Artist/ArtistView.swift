@@ -52,7 +52,7 @@ struct ArtistView: View {
 
 struct ArtistViewPreview: PreviewProvider {
     static var previews: some View {
-        TabsView()
-            .environment(UserViewModel())
+        ArtistView(artist: MockData.artist)
+            .environment(DisplayViewModel())
     }
 }

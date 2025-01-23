@@ -4,29 +4,27 @@ import Kingfisher
 struct ReviewsView: View {
     @State var viewModel = ReviewsViewModel()
     
-    private let reviewCoverWidth: CGFloat = 100
-    private let reviewCoverHeight: CGFloat = 100
-    
     var body: some View {
-        VStack {
-            if !viewModel.reviews.isEmpty {
-                ForEach(Array(viewModel.reviews.keys), id: \.id) { album in
-                    HStack {
-                        KFImage(album.cover_hq)
-                            .resizable()
-                            .frame(width: reviewCoverWidth, height: reviewCoverHeight)
-                    }
-                }
-            } else {
-                VStack {
-                    Spacer()
-                    
-                    Text("No reviews just yet.")
-                    
-                    Spacer()
-                }
+        VStack(alignment: .leading) {
+            Text("Reviews")
+                .font(.largeTitle)
+                .fontWeight(.bold)
+            
+            List(viewModel.reviews.map { $0 }, id: \.key.id) { _, review in
+                SearchResultView(
+                    result: review,
+                    navigationView: AnyView(ReviewView(review: review))
+                )
             }
+            
+            Spacer()
         }
-        .navigationTitle("Reviews")
+    }
+}
+
+struct ReviewsViewPreview: PreviewProvider {
+    static var previews: some View {
+        ReviewsView()
+            .environment(DisplayViewModel())
     }
 }

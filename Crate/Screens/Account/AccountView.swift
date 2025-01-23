@@ -240,6 +240,6 @@ struct SignUpFormView: View {
 struct AccountViewPreview: PreviewProvider {
     static var previews: some View {
         TabsView()
-            .environment(UserViewModel())
+            .environment(DisplayViewModel())
     }
 }

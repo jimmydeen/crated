@@ -132,6 +132,6 @@ struct ProfileView: View {
 struct ProfileViewPreview: PreviewProvider {
     static var previews: some View {
         ProfileView()
-            .environment(UserViewModel())
+            .environment(DisplayViewModel())
     }
 }

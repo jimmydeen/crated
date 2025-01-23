@@ -127,7 +127,7 @@ struct ListView: View {
 
 struct ListViewPreview: PreviewProvider {
     static var previews: some View {
-        TabsView()
-            .environment(UserViewModel())
+        ListView(list: MockData.list)
+            .environment(DisplayViewModel())
     }
 }

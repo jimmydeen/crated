@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-struct AlbumModel: ResultProtocol, Hashable {
+struct AlbumModel: SearchResult, Hashable {
     let name: String
     let id: String
     let artists: [String]
@@ -12,11 +12,15 @@ struct AlbumModel: ResultProtocol, Hashable {
     let date_precision: DatePrecision
     let spotify_link: URL
     
-    public func searchView() -> AnyView {
+    var subtitle: String {
+        return artists.joined(separator: ", ")
+    }
+    
+    func searchView() -> AnyView {
         return AnyView(AlbumView(album: self))
     }
     
-    public enum AlbumType: String, Hashable {
+    enum AlbumType: String, Hashable {
         case album, single, compilation
     }
 }

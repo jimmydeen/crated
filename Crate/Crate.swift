@@ -16,7 +16,7 @@ struct CrateApp: App {
     var body: some Scene {
         WindowGroup {
             TabsView()
-                .environment(UserViewModel())
+                .environment(DisplayViewModel())
         }
     }
 }

@@ -1,22 +1,25 @@
 import SwiftUI
+import PhotosUI
 
 struct AddListView: View {
     @State var viewModel = AddListViewModel()
     @State private var name: String = ""
-    @State private var coverURL: String = ""
     
     var body: some View {
         Form {
             Section(header: Text("List Details")) {
-                TextField("Name", text: $name)
+                TextField("Name", text: $viewModel.name)
+                
+                Button(action: {}) {
+                    Text("Add Cover")
+                }
             }
             
             Section {
                 Button(action: {}) {
                     Text("Save")
-                        .frame(maxWidth: .infinity)
                 }
-                .disabled(name.isEmpty)
+                .disabled(viewModel.name.isEmpty)
             }
         }
         .navigationTitle("New List")
@@ -26,5 +29,6 @@ struct AddListView: View {
 struct AddListViewPreview: PreviewProvider {
     static var previews: some View {
         AddListView()
+            .environment(DisplayViewModel())
     }
 }
