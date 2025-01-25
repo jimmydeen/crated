@@ -1,245 +1,200 @@
 import SwiftUI
 
 struct AccountView: View {
+    @Environment(\.dismiss) private var dismiss
+    
     @State var viewModel = AccountViewModel()
     
-    private let homeButtonWidth: CGFloat = 240
-    private let homeButtonCornerRadius: CGFloat = 12
-    private let homeButtonPaddingHorizontal: CGFloat = 16
-    private let homeButtonPaddingVertical: CGFloat = 8
-    private let homeMarqueeCornerRadius: CGFloat = 12
-    private let homeMarqueeHeightNormal: CGFloat = UIScreen.main.bounds.height * 0.4
-    private let homeMarqueeHeightSignUp: CGFloat = UIScreen.main.bounds.height * 0.3
-    private let homeMarqueePaddingBottom: CGFloat = UIScreen.main.bounds.height * 0.05
-    private let homeMarqueeWidth: CGFloat = UIScreen.main.bounds.width * 0.9
+    private let textBoxBorderWidth: CGFloat = 1
+    private let textBoxCornerRadius: CGFloat = 8
+    private let textBoxInternalPadding: CGFloat = 10
     
     var body: some View {
-        ZStack {
-            VStack {
-                switch viewModel.tab {
-                    case .home: accountHome
-                    case .emailSignIn: SignInFormView(viewModel: $viewModel)
-                    case .emailSignUp: SignUpFormView(viewModel: $viewModel)
-                }
-                
-                Spacer()
+        VStack(alignment: .leading) {
+            switch viewModel.tab {
+                case .emailSignIn: signInForm
+                case .emailSignUp: signUpForm
+                case .forgotPassword: forgotPasswordForm
             }
         }
+        .padding(.horizontal)
     }
     
-    private var accountHome: some View {
-        VStack {
-            homeButton(tab: .emailSignIn, text: "Sign In")
-            homeButton(tab: .emailSignUp, text: "Create account")
-        }
-    }
-    
-    private func homeButton(tab: AccountViewModel.AccountTab, text: String) -> some View {
-        Button(
-            action: {
-                viewModel.tab = tab
-            }
-        ) {
-            Text(text)
-                .font(.title2)
-                .frame(width: homeButtonWidth)
-                .padding(.horizontal, homeButtonPaddingHorizontal)
-                .padding(.vertical, homeButtonPaddingVertical)
+    var signInForm: some View {
+        VStack(alignment: .leading) {
+            Text("Sign In")
+                .font(.largeTitle)
+                .fontWeight(.semibold)
+            
+            TextField("Email", text: $viewModel.email)
+                .autocapitalization(.none)
+                .autocorrectionDisabled()
+                .padding(textBoxInternalPadding)
                 .background(Color.lightGray)
-                .cornerRadius(homeButtonCornerRadius)
+                .cornerRadius(textBoxCornerRadius)
+                .overlay(
+                    RoundedRectangle(cornerRadius: textBoxCornerRadius)
+                        .stroke(.gray, lineWidth: textBoxBorderWidth)
+                )
+            
+            SecureField("Password", text: $viewModel.password)
+                .padding(textBoxInternalPadding)
+                .background(Color.lightGray)
+                .cornerRadius(textBoxCornerRadius)
+                .overlay(
+                    RoundedRectangle(cornerRadius: textBoxCornerRadius)
+                        .stroke(.gray, lineWidth: textBoxBorderWidth)
+                )
+            
+            Button("Sign In") {
+                Task {
+                    await viewModel.signIn()
+                    if viewModel.errorMessage == nil {
+                        dismiss()
+                    }
+                }
+            }
+            .disabled(viewModel.isLoading)
+            
+            Divider()
+            
+            Button("Create Account") {
+                viewModel.changeTab(.emailSignUp)
+            }
+            .disabled(viewModel.isLoading)
+            
+            Divider()
+            
+            Button("Forgot Password") {
+                viewModel.changeTab(.forgotPassword)
+            }
+            
+            if let error = viewModel.errorMessage {
+                Text(error)
+            }
+            if let success = viewModel.successMessage {
+                Text(success)
+            }
+            
+            Spacer()
         }
     }
-}
-
-struct SignInFormView: View {
-    @Environment(\.dismiss) private var dismiss
     
-    @State private var email: String = ""
-    @State private var password: String = ""
-    @State private var showAlert: Bool = false
-    
-    @Binding var viewModel: AccountViewModel
-    
-    private let fieldCornerRadius: CGFloat = 6
-    private let fieldGroupSpacing: CGFloat = 16
-    private let fieldPaddingHorizontal: CGFloat = 8
-    private let fieldPaddingVertical: CGFloat = 4
-    private let fieldWidth: CGFloat = 300
-    private let formPaddingTop: CGFloat = 24
-    private let signInButtonWidth: CGFloat = 120
-    
-    var body: some View {
-        VStack(spacing: fieldGroupSpacing) {
-            VStack(alignment: .leading, spacing: 0) {
-                Text("Email")
-                    .font(.title2)
-                TextField("Email", text: $email)
-                    .autocapitalization(.none)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
+    var signUpForm: some View {
+        VStack(alignment: .leading) {
+            Text("Create Account")
+                .font(.largeTitle)
+                .fontWeight(.semibold)
+            
+            Button("Go back") {
+                viewModel.changeTab(.emailSignIn)
             }
             
-            VStack(alignment: .leading, spacing: 0) {
-                Text("Password")
-                    .font(.title2)
-                SecureField("Password", text: $password)
-                    .autocapitalization(.none)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-            }
+            TextField("Username", text: $viewModel.username)
+                .autocapitalization(.none)
+                .autocorrectionDisabled()
+                .padding(textBoxInternalPadding)
+                .background(Color.lightGray)
+                .cornerRadius(textBoxCornerRadius)
+                .overlay(
+                    RoundedRectangle(cornerRadius: textBoxCornerRadius)
+                        .stroke(.gray, lineWidth: textBoxBorderWidth)
+                )
             
-            HStack {
-                Spacer()
+            TextField("Email", text: $viewModel.email)
+                .autocapitalization(.none)
+                .autocorrectionDisabled()
+                .padding(textBoxInternalPadding)
+                .background(Color.lightGray)
+                .cornerRadius(textBoxCornerRadius)
+                .overlay(
+                    RoundedRectangle(cornerRadius: textBoxCornerRadius)
+                        .stroke(.gray, lineWidth: textBoxBorderWidth)
+                )
                 
-                Button(
-                    action: {
-                        Task {
-                            await viewModel.signIn(
-                                email: email,
-                                password: password
-                            )
-                            if viewModel.successMessage != nil {
-                                showAlert = true
-                            }
-                        }
+            SecureField("Password", text: $viewModel.password)
+                .padding(textBoxInternalPadding)
+                .background(Color.lightGray)
+                .cornerRadius(textBoxCornerRadius)
+                .overlay(
+                    RoundedRectangle(cornerRadius: textBoxCornerRadius)
+                        .stroke(.gray, lineWidth: textBoxBorderWidth)
+                )
+                
+            SecureField("Confirm Password", text: $viewModel.confirmPassword)
+                .padding(textBoxInternalPadding)
+                .background(Color.lightGray)
+                .cornerRadius(textBoxCornerRadius)
+                .overlay(
+                    RoundedRectangle(cornerRadius: textBoxCornerRadius)
+                        .stroke(.gray, lineWidth: textBoxBorderWidth)
+                )
+            
+            Button("Sign Up") {
+                Task {
+                    await viewModel.signUp()
+                    if viewModel.errorMessage == nil {
+                        dismiss()
                     }
-                ) {
-                    Text("Sign in")
-                        .font(.title2)
-                        .frame(width: signInButtonWidth)
-                        .padding(.horizontal, fieldPaddingHorizontal)
-                        .padding(.vertical, fieldPaddingVertical)
-                        .background(Color.lightGray)
-                        .cornerRadius(fieldCornerRadius)
                 }
-                .disabled(viewModel.isLoading)
-                .alert(isPresented: $showAlert) {
-                    Alert(
-                        title: Text("Success"),
-                        message: Text(viewModel.successMessage ?? ""),
-                        dismissButton: .default(Text("OK")) {
-                            dismiss()
-                        }
-                    )
-                }
+            }
+            .disabled(viewModel.isLoading)
+            
+            if let error = viewModel.errorMessage {
+                Text(error)
+            }
+            if let success = viewModel.successMessage {
+                Text(success)
             }
             
-            if let errorMessage = viewModel.errorMessage {
-                Text(errorMessage)
-                    .foregroundColor(.red)
-                    .padding(.horizontal)
-            }
+            Spacer()
         }
-        .frame(width: fieldWidth)
     }
-}
-
-struct SignUpFormView: View {
-    @Environment(\.dismiss) private var dismiss
     
-    @State private var username: String = ""
-    @State private var email: String = ""
-    @State private var password: String = ""
-    @State private var confirmPassword: String = ""
-    @State private var showAlert: Bool = false
-
-    @Binding var viewModel: AccountViewModel
-
-    private let fieldCornerRadius: CGFloat = 6
-    private let fieldGroupSpacing: CGFloat = 16
-    private let fieldPaddingHorizontal: CGFloat = 8
-    private let fieldPaddingVertical: CGFloat = 4
-    private let fieldWidth: CGFloat = 300
-    private let formPaddingTop: CGFloat = 24
-    private let signUpButtonWidth: CGFloat = 120
-
-    var body: some View {
-        VStack(spacing: fieldGroupSpacing) {
-            VStack(alignment: .leading, spacing: 0) {
-                Text("Username")
-                    .font(.title2)
-                TextField("Enter your username", text: $username)
-                    .autocapitalization(.none)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
+    var forgotPasswordForm: some View {
+        VStack(alignment: .leading) {
+            Text("Forgot Password")
+                .font(.largeTitle)
+                .fontWeight(.semibold)
+            
+            Button("Go back") {
+                viewModel.changeTab(.emailSignIn)
             }
-
-            VStack(alignment: .leading, spacing: 0) {
-                Text("Email")
-                    .font(.title2)
-                TextField("Enter your email", text: $email)
-                    .autocapitalization(.none)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
+            
+            TextField("Email", text: $viewModel.email)
+                .autocapitalization(.none)
+                .autocorrectionDisabled()
+                .padding(textBoxInternalPadding)
+                .background(Color.lightGray)
+                .cornerRadius(textBoxCornerRadius)
+                .overlay(
+                    RoundedRectangle(cornerRadius: textBoxCornerRadius)
+                        .stroke(.gray, lineWidth: textBoxBorderWidth)
+                )
+            
+            Button("Send Email") {
+                viewModel.sendPasswordReset()
             }
-
-            VStack(alignment: .leading, spacing: 0) {
-                Text("Password")
-                    .font(.title2)
-                SecureField("Enter your password", text: $password)
-                    .autocapitalization(.none)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
+            
+            Button("Continue to Sign In") {
+                viewModel.changeTab(.emailSignIn)
             }
-
-            VStack(alignment: .leading, spacing: 0) {
-                Text("Confirm Password")
-                    .font(.title2)
-                SecureField("Re-enter your password", text: $confirmPassword)
-                    .autocapitalization(.none)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
+            
+            if let error = viewModel.errorMessage {
+                Text(error)
             }
-
-            HStack {
-                Spacer()
-                
-                Button(
-                    action: {
-                        guard password == confirmPassword else {
-                            viewModel.errorMessage = "Passwords do not match."
-                            return
-                        }
-                        Task {
-                            await viewModel.signUp(
-                                username: username,
-                                email: email,
-                                password: password
-                            )
-                            if viewModel.successMessage != nil {
-                                showAlert = true
-                            }
-                        }
-                    }
-                ) {
-                    Text("Sign Up")
-                        .font(.title2)
-                        .frame(width: signUpButtonWidth)
-                        .padding(.horizontal, fieldPaddingHorizontal)
-                        .padding(.vertical, fieldPaddingVertical)
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(fieldCornerRadius)
-                }
-                .disabled(viewModel.isLoading)
-                .alert(isPresented: $showAlert) {
-                    Alert(
-                        title: Text("Success"),
-                        message: Text(viewModel.successMessage ?? ""),
-                        dismissButton: .default(Text("OK")) {
-                            dismiss()
-                        }
-                    )
-                }
+            if let success = viewModel.successMessage {
+                Text(success)
             }
-
-            if let errorMessage = viewModel.errorMessage {
-                Text(errorMessage)
-                    .foregroundColor(.red)
-                    .padding(.horizontal)
-            }
+            
+            Spacer()
         }
-        .frame(width: fieldWidth)
     }
 }
 
 struct AccountViewPreview: PreviewProvider {
     static var previews: some View {
-        TabsView()
+        AccountView()
             .environment(DisplayViewModel())
     }
 }

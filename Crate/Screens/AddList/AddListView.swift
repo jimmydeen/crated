@@ -3,7 +3,6 @@ import PhotosUI
 
 struct AddListView: View {
     @State var viewModel = AddListViewModel()
-    @State private var name: String = ""
     
     var body: some View {
         Form {
@@ -15,11 +14,17 @@ struct AddListView: View {
                 }
             }
             
+            NavigationLink(destination: AddListItemView(viewModel: viewModel)) {
+                Text("Add albums to list")
+                    .foregroundColor(.black)
+            }
+            
             Section {
                 Button(action: {}) {
                     Text("Save")
                 }
                 .disabled(viewModel.name.isEmpty)
+                .disabled(viewModel.albums.isEmpty)
             }
         }
         .navigationTitle("New List")

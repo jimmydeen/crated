@@ -5,11 +5,38 @@ import Observation
     var errorMessage: String? = nil
     var isLoading: Bool = false
     var successMessage: String? = nil
-    var tab: AccountTab = .home
+    var tab: AccountTab = .emailSignIn
+    
+    var username: String = ""
+    var email: String = ""
+    var password: String = ""
+    var confirmPassword: String = ""
 
     // MARK: Authentication
     
-    public func signIn(email: String, password: String) async {
+    func changeTab(_ tab: AccountTab) {
+        errorMessage = nil
+        isLoading = false
+        successMessage = nil
+        self.tab = tab
+        
+        username = ""
+        email = ""
+        password = ""
+        confirmPassword = ""
+    }
+    func sendPasswordReset() {
+        isLoading = true
+        errorMessage = nil
+        do {
+            try user.sendPasswordReset(email: email)
+            successMessage = "Email sent!"
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        isLoading = false
+    }
+    func signIn() async {
         isLoading = true
         errorMessage = nil
         do {
@@ -20,7 +47,7 @@ import Observation
         }
         isLoading = false
     }
-    public func signUp(username: String, email: String, password: String) async {
+    func signUp() async {
         isLoading = true
         errorMessage = nil
         do {
@@ -35,6 +62,6 @@ import Observation
     // MARK: Tabs
     
     public enum AccountTab {
-        case home, emailSignIn, emailSignUp
+        case emailSignIn, emailSignUp, forgotPassword
     }
 }

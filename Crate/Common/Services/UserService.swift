@@ -22,6 +22,9 @@ import Observation
         return user != nil
     }
     
+    func sendPasswordReset(email: String) throws {
+        auth.sendPasswordReset(withEmail: email)
+    }
     public func signIn(email: String, password: String) async throws {
         guard !email.isEmpty else { throw AuthenticationError.emptyEmailAddress }
         guard !password.isEmpty else { throw AuthenticationError.emptyPassword }
