@@ -2,98 +2,60 @@ import SwiftUI
 import Kingfisher
 
 struct AlbumView: View {
+    @Environment(Authentication.self) private var auth
+    
     @State var viewModel: AlbumViewModel
-    
-    init(album: AlbumModel) {
-        _viewModel = State(wrappedValue: AlbumViewModel(album: album))
-    }
-    
-    init(track: TrackModel) {
-        _viewModel = State(wrappedValue: AlbumViewModel(track: track))
-    }
-    
-    private let buttonCornerRadius: CGFloat = 16
-    private let buttonHeight: CGFloat = 22
-    private let buttonPaddingHorizontal: CGFloat = 8
-    private let buttonPaddingVertical: CGFloat = 4
-    private let buttonWidth: CGFloat = UIScreen.main.bounds.width * 0.275
-    private let coverShadowRadius: CGFloat = 6
-    private let coverSize: CGFloat = UIScreen.main.bounds.width * 0.5
-    private let signInButtonPaddingVertical: CGFloat = 16
-    private let tracklistPaddingHorizontal: CGFloat = UIScreen.main.bounds.width * 0.16
-    private let tracklistPaddingTop: CGFloat = 32
     
     var body: some View {
         ScrollView(showsIndicators: false) {
             if viewModel.isLoaded {
                 VStack(alignment: .leading) {
                     KFImage(viewModel.album!.cover_hq)
-                        .resizable()
-                        .frame(height: coverSize)
-                        .shadow(radius: coverShadowRadius)
+                        .boxSize(.huge)
+                        .boxShadow(.standard)
                     
                     Text(viewModel.album!.name)
                         .font(.title)
                         .fontWeight(.semibold)
                     
-                    Text(viewModel.album!.artists.joined(separator: ", "))
+                    Text(viewModel.album!.subtitle!)
                         .foregroundColor(.gray)
                 }
-                .frame(width: coverSize)
+                .frame(width: BoxSize.huge.rawValue)
                 .task {
-                    await viewModel.fetchInfo()
+                    await viewModel.fetchTracks()
                 }
                 
                 HStack {
-                    if viewModel.isAuthenticated {
+                    if auth.isLoggedIn {
                         ratingButton
                         
                         favoriteButton
+                            .task {
+                                await viewModel.fetchInfo()
+                            }
                     } else {
-                        NavigationLink(destination: AccountView()) {
-                            Text("Sign in to rate and review")
-                                .frame(height: buttonHeight)
-                                .padding(.horizontal, signInButtonPaddingVertical)
-                                .padding(.vertical, buttonPaddingVertical)
-                                .background(Color.lightGray)
-                                .cornerRadius(buttonCornerRadius)
-                        }
+                        RoundedNavButton(text: "Sign in to rate and review", destination: AccountView())
+                            .frame(width: BoxSize.huge.rawValue)
                     }
                 }
                 .font(.subheadline)
                 .foregroundColor(.blue)
-                .padding(.bottom, tracklistPaddingTop)
+                .padding(.bottom, .huge)
                 
-                if !viewModel.tracks.isEmpty {
-                    ForEach(viewModel.tracks, id: \.id) { track in
-                        TrackRowView(viewModel: $viewModel, track: track)
-                        
-                        Divider()
-                    }
-                    .padding(.horizontal, tracklistPaddingHorizontal)
-                }
+                tracklist
             }
         }
         .task {
-            if viewModel.isLoaded == false {
+            if !viewModel.isLoaded {
                 await viewModel.fetchAlbum()
             }
         }
     }
     
-    private var ratingButton: some View {
+    var ratingButton: some View {
         ZStack {
-            HStack(spacing: 3) {
-                ForEach(0...4, id: \.self) { index in
-                    if viewModel.rating - Double(index) > 0.5 {
-                        Image(systemName: "star.fill")
-                    } else if viewModel.rating - Double(index) == 0.5 {
-                        Image(systemName: "star.leadinghalf.fill")
-                    } else {
-                        Image(systemName: "star")
-                    }
-                }
-            }
+            stars(rating: viewModel.rating)
             
             HStack(spacing: 0) {
                 ForEach(Array(stride(from: 0.5, to: 5.5, by: 0.5)), id: \.self) { rating in
@@ -109,41 +71,63 @@ struct AlbumView: View {
                     }
                 }
             }
-            .frame(width: buttonWidth, height: buttonHeight)
+            .frame(width: UIScreen.main.bounds.width * 0.275, height: 22)
         }
-        .padding(.horizontal, buttonPaddingHorizontal)
-        .padding(.vertical, buttonPaddingVertical)
+        .padding(.horizontal, .small)
+        .padding(.vertical, .tiny)
         .background(Color.lightGray)
-        .cornerRadius(buttonCornerRadius)
+        .cornerRadius(.large)
     }
     
-    private var favoriteButton: some View {
-        Button(
-            action: {
-                Task {
-                    await viewModel.favoriteAlbum()
-                }
-            },
-            label: {
-                Image(systemName: "plus")
-                    .rotationEffect(.degrees(viewModel.isFavorite ? 45 : 0))
-                    .fontWeight(.semibold)
-                    .frame(height: buttonHeight)
-                    .padding(.horizontal, buttonPaddingHorizontal)
-                    .padding(.vertical, buttonPaddingVertical)
-                    .background(Color.lightGray)
-                    .cornerRadius(buttonCornerRadius)
+    var favoriteButton: some View {
+        Button(action: { viewModel.favoriteAlbum() }) {
+            Image(systemName: "plus")
+                .rotationEffect(.degrees(viewModel.isFavorite ? 45 : 0))
+                .fontWeight(.semibold)
+                .frame(height: 22)
+                .padding(.horizontal, .small)
+                .padding(.vertical, .tiny)
+                .background(Color.lightGray)
+                .cornerRadius(.large)
+        }
+    }
+    
+    var tracklist: some View {
+        VStack {
+            ForEach(viewModel.tracks, id: \.id) { track in
+                TrackRowView(viewModel: $viewModel, track: track)
+                
+                Divider()
             }
-        )
+            .padding(.horizontal, .standard)
+        }
+    }
+    
+    func stars(rating: Double) -> some View {
+        HStack(spacing: 3) {
+            ForEach(0...4, id: \.self) { index in
+                if rating >= Double(index) + 1 {
+                    Image(systemName: "star.fill")
+                } else if rating >= Double(index) + 0.5 {
+                    Image(systemName: "star.leadinghalf.fill")
+                } else {
+                    Image(systemName: "star")
+                }
+            }
+        }
     }
 }
 
 struct TrackRowView: View {
-    @State var isLiked: Bool = false
+    @Environment(Authentication.self) private var auth
     
     @Binding var viewModel: AlbumViewModel
     
-    let track: TrackModel
+    let track: Track
+    
+    var isLiked: Bool {
+        viewModel.favorites.contains(track.id)
+    }
     
     private let trackRowIndexWidth: CGFloat = UIScreen.main.bounds.width * 0.08
     private let trackRowTitleWidth: CGFloat = UIScreen.main.bounds.width * 0.7
@@ -166,26 +150,27 @@ struct TrackRowView: View {
             }
             .frame(width: trackRowTitleWidth)
             
-            Button(action: {
-                isLiked.toggle()
-                Task {
-                    await viewModel.favoriteTrack(track: track)
+            if auth.isLoggedIn {
+                Button(action: { viewModel.favoriteTrack(track: track) }) {
+                    Image(systemName: isLiked ? "heart.fill" : "heart")
+                        .foregroundColor(isLiked ? .red : .black)
                 }
-            }) {
-                Image(systemName: isLiked ? "heart.fill" : "heart")
-                    .foregroundColor(isLiked ? .red : .black)
             }
         }
         .frame(height: trackRowHeight)
-        .task {
-            isLiked = viewModel.favorites.contains(track.id)
-        }
     }
 }
 
-struct AlbumView_Previews: PreviewProvider {
+struct AlbumViewPreviews: PreviewProvider {
     static var previews: some View {
-        AlbumView(album: MockData.album)
-            .environment(DisplayViewModel())
+        AlbumView(viewModel: AlbumViewModel(album: Test.album))
+            .environment(Authentication())
+            .previewDisplayName("Album (Signed Out)")
+            .onAppear { Test.ensureSignedOut() }
+        
+        AlbumView(viewModel: AlbumViewModel(album: Test.album))
+            .environment(Authentication())
+            .previewDisplayName("Album (Signed In)")
+            .task { await Test.signInToTestAccount() }
     }
 }

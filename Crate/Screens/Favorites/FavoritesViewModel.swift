@@ -1,10 +1,11 @@
 import Foundation
 import Observation
 
-@Observable class FavoritesViewModel: UserViewModel {
+@Observable class FavoritesViewModel {
     let metadata: MetadataService = .shared
+    let user: UserService = .shared
     
-    var favorites: [AlbumModel] = []
+    private(set) var favorites: [Album] = []
     
     public func fetchFavorites() async {
         do {

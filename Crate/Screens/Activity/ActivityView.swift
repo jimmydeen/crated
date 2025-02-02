@@ -1,39 +1,49 @@
 import SwiftUI
 
 struct ActivityView: View {
-    @State var viewModel = ActivityViewModel()
+    @Environment(Authentication.self) private var auth
     
-    private let activityCornerRadius: CGFloat = 12
-    private let activityPadding: CGFloat = 6
+    @State var viewModel = ActivityViewModel()
     
     var body: some View {
         NavigationStack {
-            ScrollView(showsIndicators: false) {
-                LazyVStack(alignment: .leading) {
-                    ForEach(viewModel.activities, id: \.id) { activity in
-                        HStack(spacing: 0) {
+            if auth.isLoggedIn {
+                VStack(alignment: .leading) {
+                    Title(text: "Activity")
+                    
+                    if viewModel.activities.isEmpty {
+                        EmptyMessageView(text: "No activity just yet.")
+                    } else {
+                        List(viewModel.activities) {  activity in
                             Text(activity.description)
-                                .font(.subheadline)
-                            
-                            Spacer()
                         }
-                        .padding(activityPadding)
-                        .background(Color.lightGray)
-                        .cornerRadius(activityCornerRadius)
+                        .listStyle(.inset)
+                        .scrollIndicators(.hidden)
                     }
+                    
+                    Spacer()
                 }
-            }
-            .navigationTitle("Activity")
-            .task {
-                await viewModel.fetchActivities()
+                .padding(.standard)
+                .task {
+                    await viewModel.fetchActivities()
+                }
+            } else {
+                SignInPrompt(text: "Sign in to see your activity")
             }
         }
     }
 }
 
-struct ActivityViewPreview: PreviewProvider {
+struct ActivityViewPreviews: PreviewProvider {
     static var previews: some View {
-        TabsView()
-            .environment(DisplayViewModel())
+        ActivityView()
+            .environment(Authentication())
+            .previewDisplayName("Activity (Signed Out)")
+            .onAppear { Test.ensureSignedOut() }
+        
+        ActivityView()
+            .environment(Authentication())
+            .previewDisplayName("Activity (Signed In)")
+            .task { await Test.signInToTestAccount() }
     }
 }

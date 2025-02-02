@@ -1,46 +1,49 @@
 import SwiftUI
+import Kingfisher
 
 struct ReviewView: View {
     @State var viewModel: ReviewViewModel
     
-    init(review: ReviewModel) {
-        _viewModel = State(wrappedValue: ReviewViewModel(review: review))
-    }
-    
-    init(review: ReviewModel, album: AlbumModel) {
-        _viewModel = State(wrappedValue: ReviewViewModel(review: review, album: album))
-    }
-    
     var body: some View {
         VStack(alignment: .leading) {
-            HStack {
-                Text(viewModel.review.name)
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .lineLimit(1)
-                
-                Spacer()
+            Title(text: viewModel.review.name)
+            
+            if viewModel.isFetched {
+                KFImage(viewModel.album!.cover_hq)
+                    .boxSize(.standard)
             }
             
-            if !viewModel.needToFetchAlbum {
-                
+            if let title = viewModel.review.title {
+                Text(title)
+            }
+            
+            if let description = viewModel.review.description {
+                Text(description)
+            }
+            
+            if let rating = viewModel.review.rating {
+                Text("\(rating)/5")
             }
             
             Spacer()
         }
-        .onAppear {
-            if viewModel.needToFetchAlbum {
-                Task {
-                    await viewModel.fetchAlbum()
-                }
-            }
+        .padding(.standard)
+        .task {
+            await viewModel.fetchAlbum()
         }
     }
 }
 
-struct ReviewViewPreview: PreviewProvider {
+struct ReviewViewPreviews: PreviewProvider {
     static var previews: some View {
-        ReviewView(review: MockData.review)
-            .environment(DisplayViewModel())
+        ReviewView(viewModel: ReviewViewModel(review: Test.review))
+            .environment(Authentication())
+            .previewDisplayName("Review (Signed Out)")
+            .onAppear { Test.ensureSignedOut() }
+        
+        ReviewView(viewModel: ReviewViewModel(review: Test.review))
+            .environment(Authentication())
+            .previewDisplayName("Review (Signed In)")
+            .task { await Test.signInToTestAccount() }
     }
 }

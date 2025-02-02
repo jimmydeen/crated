@@ -2,254 +2,160 @@ import SwiftUI
 import Kingfisher
 
 struct HomeView: View {
-    @State var contextAlbum: AlbumModel?
-    @State var contextPosition = CGPointZero
-    @State var isDisplayingContext = false
-    @State var isDisplayingGradient = false
+    @Environment(Authentication.self) private var auth
     
-    @State private var auxiliaryContextDisplay = false
+    @State var contextAlbum: Album?
+    @State var contextPosition = CGPointZero
+    
+    @State private var contextOnAppearAction = false
     @State private var viewModel = HomeViewModel()
     
-    private let albumSize: CGFloat = UIScreen.main.bounds.width * 0.286
-    private let albumSpacing: CGFloat = UIScreen.main.bounds.width * 0.0286
-    private let BackgroundBlurViewScaling: CGFloat = 1.2
-    private let contextExitAnimationDuration: CGFloat = 0.2
+    private let contextAnimationDuration: CGFloat = 0.2
     private let contextFinalPosition = CGPoint(
         x: UIScreen.main.bounds.width * 0.5,
         y: UIScreen.main.bounds.height * 0.3
     )
-    private let contextScalingFactor: CGFloat = 1.75
-    private let gradientAnimationDuration: CGFloat = 2.0
-    private let gradientOpacity: CGFloat = 1
-    private let userButtonCornerRadius: CGFloat = 24
-    private let userButtonPaddingHorizontal: CGFloat = 20
-    private let userButtonPaddingVertical: CGFloat = 10
-    private let userMarqueeCornerRadius: CGFloat = 12
-    private let userMarqueeFrameHeight: CGFloat = 200
-    private let userMarqueeFrameWidth: CGFloat = UIScreen.main.bounds.width - 22
-    private let userMarqueeOffsetVertical: CGFloat = -16
-    private let userMarqueePaddingBottom: CGFloat = 40
+    private let signInCardHeight: CGFloat = 200
+    private let signInCardImageOffsetVertical: CGFloat = -16
     
     var body: some View {
         NavigationStack {
             ZStack {
                 ScrollView(showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 0) {
-                        if !viewModel.isAuthenticated {
-                            NavigationLink(destination: AccountView()) {
-                                ZStack {
-                                    Image("accountpromptbg")
-                                        .resizable()
-                                        .scaledToFill()
-                                        .offset(y: userMarqueeOffsetVertical)
-                                        .frame(
-                                            width: userMarqueeFrameWidth,
-                                            height: userMarqueeFrameHeight
-                                        )
-                                        .clipped()
-                                        .cornerRadius(userMarqueeCornerRadius)
-                                    
-                                    Text("Sign In")
-                                        .padding(.vertical, userButtonPaddingVertical)
-                                        .padding(.horizontal, userButtonPaddingHorizontal)
-                                        .background(Color.white)
-                                        .cornerRadius(userButtonCornerRadius)
-                                        .foregroundColor(Color.black)
-                                }
-                            }
-                            .padding(.horizontal, albumSpacing)
-                            .padding(.bottom, userMarqueePaddingBottom)
+                        if !auth.isLoggedIn {
+                            signInCard
                         }
                         
-                        HStack {
-                            Text("Newest releases")
-                                .font(.title2)
-                                .fontWeight(.bold)
-                            
-                            Spacer()
-                        }
-                        .padding(.leading, albumSpacing)
-                        .padding(.bottom, albumSpacing)
-                        
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            LazyHStack(spacing: 0) {
-                                if viewModel.albums.isEmpty {
-                                    ForEach(1...6, id: \.self) { _ in
-                                        HomeAlbumPlaceholderView()
-                                            .frame(width: albumSize, height: albumSize)
-                                            .padding(.leading, albumSpacing)
-                                    }
-                                } else {
-                                    ForEach(viewModel.albums, id: \.id) { album in
-                                        HomeAlbumView(
-                                            contextAlbum: $contextAlbum,
-                                            contextPosition: $contextPosition,
-                                            isDisplayingContext: $isDisplayingContext,
-                                            album: album
-                                        )
-                                        .frame(width: albumSize, height: albumSize)
-                                        .padding(.leading, albumSpacing)
-                                    }
-                                }
-                            }
-                            .padding(.trailing, albumSpacing)
-                            .scrollTargetLayout()
-                        }
-                        .scrollTargetBehavior(.viewAligned)
+                        newestReleases
                     }
                 }
                 
-                if isDisplayingContext {
-                    ZStack {
-                        VStack {
-                            if let gradient = viewModel.gradient {
-                                LinearGradient(
-                                    gradient: gradient,
-                                    startPoint: .top,
-                                    endPoint: .center
-                                )
-                                .opacity(gradientOpacity)
-                                .transition(.opacity)
-                            }
-                        }
-                        .ignoresSafeArea(.all)
-                        
-                        BackgroundBlurView()
-                            .scaleEffect(auxiliaryContextDisplay ? BackgroundBlurViewScaling : 1)
-                            .onTapGesture {
-                                withAnimation(.easeOut(duration: contextExitAnimationDuration)) {
-                                    auxiliaryContextDisplay = false
-                                }
-                                DispatchQueue.main.asyncAfter(deadline: .now() + contextExitAnimationDuration) {
-                                    isDisplayingGradient = false
-                                    isDisplayingContext = false
-                                    contextAlbum = nil
-                                }
-                            }
-                            .ignoresSafeArea(.all)
-                        
-                        KFImage(contextAlbum!.cover_hq)
-                            .resizable()
-                            .frame(
-                                width: albumSize * (auxiliaryContextDisplay ? contextMenuScalingFactor : 1),
-                                height: albumSize * (auxiliaryContextDisplay ? contextMenuScalingFactor : 1)
-                            )
-                            .position(contextMenuPosition)
-                            .onAppear {
-                                withAnimation {
-                                    auxiliaryContextDisplay = true
-                                }
-                            }
-                            .ignoresSafeArea(.all)
-                    }
+                if contextAlbum != nil {
+                    contextCard
                 }
             }
-            .onAppear {
-                if viewModel.albums.count == 0 {
-                    Task {
-                        await viewModel.fetchNewReleases()
-                    }
-                }
+            .task {
+                await viewModel.fetchNewReleases()
             }
         }
     }
     
-    private var contextMenuPosition: CGPoint {
-        if auxiliaryContextDisplay {
-            return CGPoint(
-                x: contextFinalPosition.x,
-                y: contextFinalPosition.y
-            )
-        } else {
-            return CGPoint(
-                x: contextPosition.x + (albumSize / 2),
-                y: contextPosition.y + (albumSize / 2)
-            )
+    var signInCard: some View {
+        NavigationLink(destination: AccountView()) {
+            ZStack {
+                Image("accountpromptbg")
+                    .resizable()
+                    .scaledToFill()
+                    .offset(y: signInCardImageOffsetVertical)
+                    .frame(height: signInCardHeight)
+                    .clipped()
+                    .cornerRadius(.standard)
+                
+                Text("Sign In")
+                    .padding(.horizontal, .standard)
+                    .padding(.vertical, .small)
+                    .background(.white)
+                    .cornerRadius(.standard)
+                    .foregroundColor(.black)
+            }
+        }
+        .padding(.horizontal, .standard)
+        .padding(.bottom, .extraHuge)
+    }
+    var newestReleases: some View {
+        VStack(alignment: .leading) {
+            Subtitle(text: "Newest releases")
+                .padding(.leading, .standard)
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                LazyHStack(spacing: Spacing.standard.rawValue) {
+                    ForEach(viewModel.albums, id: \.id) { album in
+                        HomeAlbumView(
+                            contextAlbum: $contextAlbum,
+                            contextPosition: $contextPosition,
+                            album: album
+                        )
+                    }
+                }
+                .padding(.horizontal, .standard)
+                .scrollTargetLayout()
+            }
+            .scrollTargetBehavior(.viewAligned)
         }
     }
-    private var contextMenuScalingFactor: CGFloat {
-        if auxiliaryContextDisplay {
-            return contextScalingFactor
-        } else {
-            return 1
+    var contextCard: some View {
+        ZStack {
+            BackgroundBlurView()
+                .onTapGesture {
+                    withAnimation(.easeOut(duration: contextAnimationDuration)) {
+                        contextOnAppearAction = false
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + contextAnimationDuration) {
+                        contextAlbum = nil
+                    }
+                }
+            
+            KFImage(contextAlbum!.cover_hq)
+                .boxSize(contextOnAppearAction ? .huge : .large)
+                .position(contextOnAppearAction ? contextFinalPosition : contextPosition)
+                .onAppear {
+                    withAnimation {
+                        contextOnAppearAction = true
+                    }
+                }
         }
+        .ignoresSafeArea(.all)
     }
 }
 
 struct HomeAlbumView: View {
     @State private var changeNotifier: Bool = false
     
-    @Binding var contextAlbum: AlbumModel?
+    @Binding var contextAlbum: Album?
     @Binding var contextPosition: CGPoint
-    @Binding var isDisplayingContext: Bool
     
-    let album: AlbumModel
+    let album: Album
     
     private let animationDuration: CGFloat = 0.2
     private let pressDuration: CGFloat = 0.5
     
     var body: some View {
-        NavigationLink(destination: AlbumView(album: album)) {
+        NavigationLink(destination: AlbumView(viewModel: AlbumViewModel(album: album))) {
             KFImage(album.cover_hq)
-                .resizable()
-                .opacity(contextAlbum?.id == album.id ? 0 : 1)
+                .boxSize(.large)
+                .opacity(contextAlbum == album ? 0 : 1)
         }
-        .disabled(isDisplayingContext)
+        .disabled(contextAlbum == album)
         .simultaneousGesture(
             LongPressGesture(minimumDuration: pressDuration)
                 .onEnded { _ in
-                    contextAlbum = album
                     changeNotifier.toggle()
-                    
-                    withAnimation(.easeInOut(duration: animationDuration)) {
-                        isDisplayingContext = true
-                    }
+                    contextAlbum = album
                 }
         )
         .background(
             GeometryReader { geometry in
                 Color.clear
                     .onChange(of: changeNotifier) {
-                        if contextAlbum?.id == album.id {
-                            let frame = geometry.frame(in: .global)
-                            contextPosition = CGPoint(x: frame.minX, y: frame.minY)
-                        }
+                        let frame = geometry.frame(in: .global)
+                        contextPosition = CGPoint(x: frame.midX, y: frame.midY)
                     }
             }
         )
     }
 }
 
-struct HomeAlbumPlaceholderView: View {
-    @State private var animate = false
-
-    var body: some View {
-        Rectangle()
-            .fill(
-                LinearGradient(
-                    gradient: Gradient(colors: [
-                        Color.lightGray.opacity(0.8),
-                        Color.lightGray.opacity(0.6)
-                    ]),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
-            .scaleEffect(animate ? 1.03 : 0.97)
-            .animation(
-                .easeInOut(duration: 1.2)
-                    .repeatForever(autoreverses: true),
-                value: animate
-            )
-            .onAppear {
-                animate = true
-            }
-    }
-}
-
-struct HomeViewPreview: PreviewProvider {
+struct HomeViewPreviews: PreviewProvider {
     static var previews: some View {
         HomeView()
-            .environment(DisplayViewModel())
+            .environment(Authentication())
+            .previewDisplayName("Home (Signed Out)")
+            .onAppear { Test.ensureSignedOut() }
+        
+        HomeView()
+            .environment(Authentication())
+            .previewDisplayName("Home (Signed In)")
+            .task { await Test.signInToTestAccount() }
     }
 }

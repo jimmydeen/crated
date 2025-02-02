@@ -6,25 +6,52 @@ struct ReviewsView: View {
     
     var body: some View {
         VStack(alignment: .leading) {
-            Text("Reviews")
-                .font(.largeTitle)
-                .fontWeight(.bold)
+            HStack {
+                Title(text: "Reviews")
+                
+                Spacer()
+                
+                NavigationLink(destination: CreateReviewView()) {
+                    Image(systemName: "plus")
+                        .font(.title)
+                        .fontWeight(.regular)
+                        .foregroundColor(.blue)
+                }
+            }
             
-            List(viewModel.reviews.map { $0 }, id: \.key.id) { _, review in
-                SearchResultView(
-                    result: review,
-                    navigationView: AnyView(ReviewView(review: review))
-                )
+            if viewModel.reviews.isEmpty {
+                EmptyMessageView(text: "No reviews just yet.")
+            } else {
+                reviews
             }
             
             Spacer()
         }
+        .padding([.horizontal, .top], .standard)
+        .task {
+            await viewModel.fetchReviews()
+        }
+    }
+    
+    var reviews: some View {
+        List(viewModel.reviews, id: \.id) { review in
+            ResultListRowView(result: review)
+        }
+        .listStyle(.inset)
+        .scrollIndicators(.hidden)
     }
 }
 
-struct ReviewsViewPreview: PreviewProvider {
+struct ReviewsViewPreviews: PreviewProvider {
     static var previews: some View {
-        ReviewsView()
-            .environment(DisplayViewModel())
+        ProfileView()
+            .environment(Authentication())
+            .previewDisplayName("Reviews (Signed Out)")
+            .onAppear { Test.ensureSignedOut() }
+        
+        ProfileView()
+            .environment(Authentication())
+            .previewDisplayName("Reviews (Signed In)")
+            .task { await Test.signInToTestAccount() }
     }
 }

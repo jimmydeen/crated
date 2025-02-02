@@ -4,53 +4,39 @@ import Kingfisher
 struct FavoritesView: View {
     @State var viewModel = FavoritesViewModel()
     
-    private let gridRowCellCount: Int = 3
-    private let gridSpacing: CGFloat = UIScreen.main.bounds.width * 0.034
-    
     var body: some View {
-        VStack {
-            if !viewModel.favorites.isEmpty {
-                LazyVGrid(
-                    columns: Array(repeating: GridItem(.flexible(), alignment: .leading), count: gridRowCellCount),
-                    spacing: gridSpacing
-                ) {
-                    ForEach(viewModel.favorites, id: \.id) { album in
-                        NavigationLink(destination: AlbumView(album: album)) {
-                            KFImage(album.cover_hq)
-                                .resizable()
-                                .frame(width: gridCellSize, height: gridCellSize)
-                        }
-                    }
-                }
+        VStack(alignment: .leading) {
+            Title(text: "Favorites")
+            
+            if viewModel.favorites.isEmpty {
+                EmptyMessageView(text: "No favorites just yet.")
             } else {
-                emptyFavorites
+                favorites
             }
         }
-        .navigationTitle("Favorites")
+        .padding([.horizontal, .top], .standard)
         .task {
             await viewModel.fetchFavorites()
         }
     }
     
-    private var emptyFavorites: some View {
-        VStack {
-            Spacer()
-            
-            Text("No favorites just yet.")
-            
-            Spacer()
+    var favorites: some View {
+        List(viewModel.favorites, id: \.id) { favorite in
+            ResultListRowView(result: favorite)
         }
-    }
-    private var gridCellSize: CGFloat {
-        let totalSpace = UIScreen.main.bounds.width - (gridSpacing * (CGFloat(gridRowCellCount) + 1))
-        let cellSize = totalSpace / CGFloat(gridRowCellCount)
-        return cellSize
     }
 }
 
-struct FavoritesViewPreview: PreviewProvider {
+struct FavoritesViewPreviews: PreviewProvider {
     static var previews: some View {
-        FavoritesView()
-            .environment(DisplayViewModel())
+        ProfileView()
+            .environment(Authentication())
+            .previewDisplayName("Favorites (Signed Out)")
+            .onAppear { Test.ensureSignedOut() }
+        
+        ProfileView()
+            .environment(Authentication())
+            .previewDisplayName("Favorites (Signed In)")
+            .task { await Test.signInToTestAccount() }
     }
 }

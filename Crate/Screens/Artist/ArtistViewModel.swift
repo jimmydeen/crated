@@ -2,20 +2,27 @@ import Foundation
 import Observation
 
 @Observable class ArtistViewModel {
-    let metadata: MetadataService = .shared
-    var artist: ArtistModel
-    var albums: [AlbumModel] = []
+    private let metadata: MetadataService = .shared
     
-    init(artist: ArtistModel) {
+    private(set) var artist: Artist
+    private(set) var albums: [Album] = []
+    private(set) var compilations: [Album] = []
+    private(set) var singles: [Album] = []
+    
+    init(artist: Artist) {
         self.artist = artist
     }
     
-    public func retrieveAlbums() async {
-        albums.removeAll()
-        
+    func retrieveAlbums() async {
         do {
-            let newAlbums = try await metadata.fetchAlbumsByArtist(artistID: artist.id)
-            self.albums = newAlbums
+            let albums = try await metadata.fetchAlbumsByArtist(artistID: artist.id)
+            for album in albums {
+                switch album.type {
+                    case .album: self.albums.append(album)
+                    case .compilation: self.compilations.append(album)
+                    case .single: self.singles.append(album)
+                }
+            }
         } catch {
             print(error)
         }

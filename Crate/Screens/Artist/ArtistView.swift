@@ -4,55 +4,69 @@ import Kingfisher
 struct ArtistView: View {
     @State var viewModel: ArtistViewModel
     
-    init(artist: ArtistModel) {
-        _viewModel = State(wrappedValue: ArtistViewModel(artist: artist))
-    }
-    
-    private let coverPaddingBottom: CGFloat = 48
-    private let coverSize: CGFloat = UIScreen.main.bounds.width
-    private let gridRowCellCount: Int = 3
-    private let gridSpacing: CGFloat = UIScreen.main.bounds.width * 0.034
-    
     var body: some View {
         ScrollView {
-            VStack {
-                KFImage(viewModel.artist.cover_hq)
-                    .resizable()
-                    .frame(width: coverSize, height: coverSize)
-                    .padding(.bottom, coverPaddingBottom)
+            VStack(alignment: .leading) {
+                Title(text: viewModel.artist.name)
+                    .padding(.horizontal, .standard)
                 
-                LazyVGrid(
-                    columns: Array(repeating: GridItem(.flexible(), alignment: .leading), count: gridRowCellCount),
-                    spacing: gridSpacing
-                ) {
-                    ForEach(viewModel.albums, id: \.id) { album in
-                        NavigationLink(destination: AlbumView(album: album)) {
+                KFImage(viewModel.artist.cover_hq)
+                    .boxSize(.huge)
+                    .padding(.bottom, .extraHuge)
+                    .padding(.horizontal, .standard)
+                
+                if !viewModel.albums.isEmpty {
+                    Subtitle(text: "Albums")
+                        .padding(.horizontal, .standard)
+                    
+                    HorizontalCarouselView(data: viewModel.albums) { album in
+                        NavigationLink(destination: album.searchView()) {
                             KFImage(album.cover_hq)
-                                .resizable()
-                                .frame(width: gridCellSize, height: gridCellSize)
+                                .boxSize(.large)
                         }
                     }
                 }
-                .padding(.horizontal, gridSpacing)
+                
+                if !viewModel.compilations.isEmpty {
+                    Subtitle(text: "Compilations")
+                        .padding(.horizontal, .standard)
+                    
+                    HorizontalCarouselView(data: viewModel.compilations) { album in
+                        NavigationLink(destination: album.searchView()) {
+                            KFImage(album.cover_hq)
+                                .boxSize(.large)
+                        }
+                    }
+                }
+                
+                if !viewModel.singles.isEmpty {
+                    Subtitle(text: "Singles")
+                        .padding(.horizontal, .standard)
+                    
+                    HorizontalCarouselView(data: viewModel.singles) { album in
+                        NavigationLink(destination: album.searchView()) {
+                            KFImage(album.cover_hq)
+                                .boxSize(.large)
+                        }
+                    }
+                }
+            }
+            .task {
+                await viewModel.retrieveAlbums()
             }
         }
-        .navigationTitle(viewModel.artist.name.capitalized)
-        .task {
-            await viewModel.retrieveAlbums()
-        }
-        .background(Color.white)
-    }
-    
-    private var gridCellSize: CGFloat {
-        let totalSpace = UIScreen.main.bounds.width - (gridSpacing * (CGFloat(gridRowCellCount) + 1))
-        let cellSize = totalSpace / CGFloat(gridRowCellCount)
-        return cellSize
     }
 }
 
-struct ArtistViewPreview: PreviewProvider {
+struct ArtistViewPreviews: PreviewProvider {
     static var previews: some View {
-        ArtistView(artist: MockData.artist)
-            .environment(DisplayViewModel())
+        ArtistView(viewModel: ArtistViewModel(artist: Test.artist))
+            .environment(Authentication())
+            .previewDisplayName("Artist (Signed Out)")
+            .onAppear { Test.ensureSignedOut() }
+        
+        ArtistView(viewModel: ArtistViewModel(artist: Test.artist))            .environment(Authentication())
+            .previewDisplayName("Artist (Signed In)")
+            .task { await Test.signInToTestAccount() }
     }
 }

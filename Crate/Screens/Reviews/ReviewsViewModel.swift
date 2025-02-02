@@ -1,19 +1,15 @@
 import Foundation
 import Observation
 
-@Observable class ReviewsViewModel: UserViewModel {
-    let metadata: MetadataService = .shared
+@Observable class ReviewsViewModel {
+    private let metadata: MetadataService = .shared
+    private let user: UserService = .shared
     
-    var reviews: [AlbumModel: ReviewModel] = [:]
+    private(set) var reviews: [Review] = []
     
-    public func fetchReviews() async {
+    func fetchReviews() async {
         do {
-            let reviews = try await user.retrieveReviews()
-            
-            for review in reviews {
-                let album = try await metadata.fetchAlbumDetails(albumID: review.album_id)
-                self.reviews.updateValue(review, forKey: album)
-            }
+            reviews = try await user.retrieveReviews()
         } catch {
             print(error)
         }
