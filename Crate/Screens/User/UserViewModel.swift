@@ -2,9 +2,21 @@ import Foundation
 import Observation
 
 @Observable class UserViewModel {
-    private(set) var user: User
+    private let user: UserService = .shared
     
-    init(user: User) {
-        self.user = user
+    private(set) var profile: User
+    
+    init(profile: User) {
+        self.profile = profile
+    }
+    
+    func sendFriendRequest() {
+        Task {
+            do {
+                try await user.sendFriendRequest(user_id: profile.id)
+            } catch {
+                print(error)
+            }
+        }
     }
 }

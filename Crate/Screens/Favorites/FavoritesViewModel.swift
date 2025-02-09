@@ -6,8 +6,12 @@ import Observation
     let user: UserService = .shared
     
     private(set) var favorites: [Album] = []
+    private(set) var isLoading: Bool = true
     
     public func fetchFavorites() async {
+        guard favorites.isEmpty else { return }
+        defer { isLoading = false }
+        
         do {
             let albums = try await user.retrieveFavoriteAlbums()
             for album in albums {

@@ -14,11 +14,16 @@ struct ProfileFriendsView: View {
             }
         }
         .padding([.horizontal, .top], .standard)
+        .task {
+            await viewModel.loadInitialFriends()
+        }
     }
     
     var friends: some View {
         List(viewModel.friends, id: \.id) { friend in
-            ResultListRowView(result: friend)
+            NavigationLink(destination: friend.searchView()){
+                Text(friend.name)
+            }
         }
         .listStyle(.inset)
         .scrollIndicators(.hidden)
@@ -29,12 +34,12 @@ struct ProfileFriendsViewPreviews: PreviewProvider {
     static var previews: some View {
         ProfileView()
             .environment(Authentication())
-            .previewDisplayName("Profile - Friends (Signed Out)")
+            .previewDisplayName("Profile (Signed Out)")
             .onAppear { Test.ensureSignedOut() }
         
         ProfileView()
             .environment(Authentication())
-            .previewDisplayName("Profile - Friends (Signed In)")
+            .previewDisplayName("Profile (Signed In)")
             .task { await Test.signInToTestAccount() }
     }
 }

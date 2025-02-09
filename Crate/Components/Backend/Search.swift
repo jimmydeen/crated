@@ -2,7 +2,7 @@ import Foundation
 import Observation
 
 @Observable class Search {
-    private let batchSize: Int = 20
+    private let batchSize: Int = 10
     private let metadata: MetadataService = .shared
     private let user: UserService = .shared
     
@@ -40,7 +40,7 @@ import Observation
     func load(currentItem: SearchResult) {
         guard canLoadMorePages, !isLoading else { return }
         
-        if results.count >= 3, results[results.count - 3].id == currentItem.id {
+        if results.count >= 1, results[results.count - 1].id == currentItem.id {
             searchTask = Task {
                 switch segment {
                     case .user: await searchUsers()
@@ -84,7 +84,7 @@ import Observation
         defer { isLoading = false }
         
         do {
-            let fetchedResults = try await user.retrieveUsers(
+            let fetchedResults = try await user.searchUsers(
                 query: query,
                 page: page,
                 batchSize: batchSize

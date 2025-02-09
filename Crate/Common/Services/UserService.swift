@@ -13,36 +13,43 @@ class UserService {
     private var lastFriendDocument: DocumentSnapshot?
     private var lastUserDocument: DocumentSnapshot?
     
+    private var isSignedIn: Bool {
+        auth.currentUser != nil
+    }
     private var userDocument: DocumentReference {
         return datastore.collection("users").document(auth.currentUser!.uid)
     }
     
-    private(set) var user: User?
-    
     // MARK: Authentication
     
     func sendPasswordReset(email: String) throws {
+        guard !email.isEmpty else { throw AuthenticationError.emptyEmail }
+        
         auth.sendPasswordReset(withEmail: email)
     }
     
     func signIn(email: String, password: String) async throws {
-        try await auth.signIn(withEmail: email, password: password)
+        guard !isSignedIn else { throw AuthenticationError.alreadySignedIn }
+        guard !email.isEmpty else { throw AuthenticationError.emptyEmail }
+        guard !password.isEmpty else { throw AuthenticationError.emptyPassword }
         
-        user = try await userDocument.getDocument().data(as: User.self)
+        try await auth.signIn(withEmail: email, password: password)
     }
     
     func signOut() throws {
-        try auth.signOut()
+        guard isSignedIn else { throw AuthenticationError.notSignedIn }
         
-        user = nil
+        try auth.signOut()
     }
     
     func signUp(username: String, email: String, password: String) async throws {
+        guard !isSignedIn else { throw AuthenticationError.alreadySignedIn }
+        guard !email.isEmpty else { throw AuthenticationError.emptyEmail }
+        guard !password.isEmpty else { throw AuthenticationError.emptyPassword }
+        guard !username.isEmpty else { throw AuthenticationError.emptyUsername }
+        
         try await auth.createUser(withEmail: email, password: password)
-        
         try await createUser(username: username)
-        
-        user = try await userDocument.getDocument().data(as: User.self)
     }
     
     // MARK: Datastore - Activities
@@ -53,9 +60,13 @@ class UserService {
     
     // MARK: Datastore - Crates
     
-    func createCrate(name: String, albums: [String]) throws {
-        let crate = Crate(name: name, user_id: auth.currentUser!.uid, albums: albums)
+    func createCrate(name: String, cover: URL? = nil, albums: [String]) throws {
+        let crate = Crate(name: name, user_id: auth.currentUser!.uid, cover: cover, albums: albums)
         try userDocument.collection("crates").document(crate.id).setData(from: crate)
+    }
+    
+    func deleteCrate(crate_id: String) {
+        userDocument.collection("crates").document(crate_id).delete()
     }
     
     func retrieveCrates() async throws -> [Crate] {
@@ -128,11 +139,12 @@ class UserService {
         try await userDocument.updateData(["friend": FieldValue.arrayUnion([user_id])])
     }
     
-    func retrieveFriends(page: Int) async throws -> [User] {
+    func retrieveFriends(page: Int, batchSize: Int) async throws -> [User] {
         let friends = try await userDocument.getDocument().get("friends") as? [String] ?? []
+        if friends.isEmpty { return [] }
         
-        let start = (page - 1) * 10
-        let end = min(start + 10, friends.count)
+        let start = (page - 1) * batchSize
+        let end = min(start + batchSize, friends.count)
         
         let friendsChunk = Array(friends[start..<end])
         let friendsQuery = datastore.collection("users").whereField(FieldPath.documentID(), in: friendsChunk)
@@ -181,7 +193,11 @@ class UserService {
         try datastore.collection("users").document(auth.currentUser!.uid).setData(from: User(username: username, id: auth.currentUser!.uid))
     }
     
-    func retrieveUsers(query: String, page: Int, batchSize: Int) async throws -> [User] {
+    func retrieveUser() async throws -> User {
+        return try await userDocument.getDocument().data(as: User.self)
+    }
+    
+    func searchUsers(query: String, page: Int, batchSize: Int) async throws -> [User] {
         if page == 1 {
             lastUserDocument = nil
         }
@@ -189,7 +205,6 @@ class UserService {
         var usersQuery: Query = datastore.collection("users")
             .whereField("username", isGreaterThanOrEqualTo: query)
             .whereField("username", isLessThan: query + "\u{f8ff}")
-            .whereField("username", isNotEqualTo: user!.username)
             .limit(to: batchSize)
         
         if page > 1, let lastUserDocument = lastUserDocument {
@@ -205,5 +220,11 @@ class UserService {
         lastUserDocument = userDocuments.last
         
         return users
+    }
+    
+    // MARK: Errors
+    
+    enum AuthenticationError: Error {
+        case alreadySignedIn, emptyEmail, emptyPassword, emptyUsername, notSignedIn
     }
 }

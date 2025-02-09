@@ -18,7 +18,7 @@ import Observation
     
     func createCrate() {
         do {
-            try user.createCrate(name: name, albums: albums.map { $0.id })
+            try user.createCrate(name: name, cover: albums.first?.cover_lq ?? nil, albums: albums.map { $0.id })
         } catch {
             print(error)
         }

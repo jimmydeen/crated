@@ -10,18 +10,21 @@ struct ProfileView: View {
         NavigationStack {
             if auth.isLoggedIn {
                 VStack {
-                    if viewModel.avatar != nil {
-                        KFImage(viewModel.avatar!)
-                            .boxSize(.standard)
-                            .clipShape(Circle())
-                    } else {
-                        PlaceholderProfilePictureView()
-                            .boxSize(.standard)
-                            .font(.largeTitle)
-                    }
+                    if viewModel.isUserLoaded, let profile = viewModel.profile {
+                        if let avatar = profile.cover {
+                            KFImage(avatar)
+                                .boxSize(.standard)
+                                .clipShape(Circle())
+                        } else {
+                            PlaceholderProfilePictureView()
+                                .boxSize(.standard)
+                                .clipShape(Circle())
+                                .font(.largeTitle)
+                        }
                         
-                    Text("@\(viewModel.username)")
-                        .font(.title3)
+                        Text("@\(profile.username)")
+                            .font(.title3)
+                    }
                     
                     RoundedNavButton(text: "Edit Profile", destination: ProfileEditView())
                     
@@ -37,6 +40,9 @@ struct ProfileView: View {
                     Spacer()
                 }
                 .padding(.standard)
+                .task {
+                    await viewModel.fetchUser()
+                }
             } else {
                 SignInPrompt(text: "Sign in to see your profile")
             }

@@ -27,7 +27,17 @@ import Observation
         }
     }
     
+    func deleteCrate() {
+        Task {
+            do {
+                user.deleteCrate(crate_id: crate.id)
+            }
+        }
+    }
+    
     func fetchAlbums() async {
+        guard albums.isEmpty else { return }
+        
         do {
             for id in crate.albums {
                 let album = try await metadata.fetchAlbumDetails(albumID: id)

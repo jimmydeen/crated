@@ -75,6 +75,7 @@
 		65CB70422D31EF1700FCC26D /* Review.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65CB70412D31EF1400FCC26D /* Review.swift */; };
 		65CDC2DB2D38C16E0061EE64 /* CreateCrateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65CDC2DA2D38C16B0061EE64 /* CreateCrateView.swift */; };
 		65CDC2DD2D38C37E0061EE64 /* CreateCrateViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65CDC2DC2D38C37C0061EE64 /* CreateCrateViewModel.swift */; };
+		65CDD00F2D57848C005AEB42 /* DMMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 65CDD00E2D57848C005AEB42 /* DMMono-Regular.ttf */; };
 		65E9A6F62C9BB0E400EF1867 /* CrateViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65E9A6F52C9BB0E000EF1867 /* CrateViewModel.swift */; };
 /* End PBXBuildFile section */
 
@@ -139,6 +140,7 @@
 		65CB70412D31EF1400FCC26D /* Review.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Review.swift; sourceTree = "<group>"; };
 		65CDC2DA2D38C16B0061EE64 /* CreateCrateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateCrateView.swift; sourceTree = "<group>"; };
 		65CDC2DC2D38C37C0061EE64 /* CreateCrateViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateCrateViewModel.swift; sourceTree = "<group>"; };
+		65CDD00E2D57848C005AEB42 /* DMMono-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "DMMono-Regular.ttf"; sourceTree = "<group>"; };
 		65E9A6F52C9BB0E000EF1867 /* CrateViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrateViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -162,6 +164,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		651811D72D51A82E0066F2DF /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				65CDD00E2D57848C005AEB42 /* DMMono-Regular.ttf */,
+			);
+			path = Fonts;
+			sourceTree = "<group>";
+		};
 		651C28032C470FF500FFE3A6 = {
 			isa = PBXGroup;
 			children = (
@@ -235,6 +245,7 @@
 		651C28342C47105B00FFE3A6 /* Common */ = {
 			isa = PBXGroup;
 			children = (
+				651811D72D51A82E0066F2DF /* Fonts */,
 				6534A4DF2D27B1CB006686BB /* Protocols */,
 				651C28302C47105B00FFE3A6 /* Services */,
 				651C28322C47105B00FFE3A6 /* Utilities */,
@@ -254,10 +265,10 @@
 				65923D4E2C66326B007297BD /* Artist */,
 				6577AB0C2C91965E006AC0B7 /* Crate */,
 				652C9FE02D31236500379380 /* Crates */,
-				65CDC2DE2D38C3A10061EE64 /* CreateCrate */,
-				65923D502C663296007297BD /* CreateReview */,
 				652C9FE12D31236C00379380 /* Favorites */,
 				65923D472C6630CB007297BD /* Home */,
+				65CDC2DE2D38C3A10061EE64 /* New Crate */,
+				65923D502C663296007297BD /* New Review */,
 				65923D4D2C66324B007297BD /* Profile */,
 				6579D04F2D41DC520062220B /* Review */,
 				652C9FDF2D31235A00379380 /* Reviews */,
@@ -405,13 +416,13 @@
 			path = Artist;
 			sourceTree = "<group>";
 		};
-		65923D502C663296007297BD /* CreateReview */ = {
+		65923D502C663296007297BD /* New Review */ = {
 			isa = PBXGroup;
 			children = (
 				65BC51AA2D4E6F3200A142CA /* CreateReviewView.swift */,
 				653C04502C805FD3003C8C5D /* CreateReviewViewModel.swift */,
 			);
-			path = CreateReview;
+			path = "New Review";
 			sourceTree = "<group>";
 		};
 		65C02E1D2C92C32000DE2845 /* Account */ = {
@@ -435,14 +446,14 @@
 			path = Frontend;
 			sourceTree = "<group>";
 		};
-		65CDC2DE2D38C3A10061EE64 /* CreateCrate */ = {
+		65CDC2DE2D38C3A10061EE64 /* New Crate */ = {
 			isa = PBXGroup;
 			children = (
 				65CDC2DA2D38C16B0061EE64 /* CreateCrateView.swift */,
 				65CDC2DC2D38C37C0061EE64 /* CreateCrateViewModel.swift */,
 				652C0A912D409A190098AAE1 /* CreateCrateItemView.swift */,
 			);
-			path = CreateCrate;
+			path = "New Crate";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -473,7 +484,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1540;
-				LastUpgradeCheck = 1540;
+				LastUpgradeCheck = 1620;
 				TargetAttributes = {
 					651C280B2C470FF500FFE3A6 = {
 						CreatedOnToolsVersion = 15.4;
@@ -510,6 +521,7 @@
 				651C28172C470FF600FFE3A6 /* Preview Assets.xcassets in Resources */,
 				651C28142C470FF600FFE3A6 /* Assets.xcassets in Resources */,
 				65AAC38E2D3025B300BC08D1 /* GoogleService-Info.plist in Resources */,
+				65CDD00F2D57848C005AEB42 /* DMMono-Regular.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -714,6 +726,7 @@
 				DEVELOPMENT_TEAM = T9N9DJ6GHR;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Crate/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -750,6 +763,7 @@
 				DEVELOPMENT_TEAM = T9N9DJ6GHR;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Crate/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

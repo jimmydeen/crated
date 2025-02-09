@@ -40,6 +40,8 @@ struct PlaceholderProfilePictureView: View {
                 
                 Spacer()
             }
+            
+            Spacer()
         }
         .background(Color.lightGray)
     }

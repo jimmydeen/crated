@@ -8,10 +8,12 @@ struct FavoritesView: View {
         VStack(alignment: .leading) {
             Title(text: "Favorites")
             
-            if viewModel.favorites.isEmpty {
-                EmptyMessageView(text: "No favorites just yet.")
-            } else {
-                favorites
+            if !viewModel.isLoading {
+                if viewModel.favorites.isEmpty {
+                    EmptyMessageView(text: "No favorites just yet.")
+                } else {
+                    favorites
+                }
             }
         }
         .padding([.horizontal, .top], .standard)
@@ -21,9 +23,13 @@ struct FavoritesView: View {
     }
     
     var favorites: some View {
-        List(viewModel.favorites, id: \.id) { favorite in
-            ResultListRowView(result: favorite)
+        List(viewModel.favorites) { favorite in
+            NavigationLink(destination: AlbumView(viewModel: AlbumViewModel(album: favorite))) {
+                ResultListRowView(result: favorite)
+            }
         }
+        .listStyle(.inset)
+        .scrollIndicators(.hidden)
     }
 }
 

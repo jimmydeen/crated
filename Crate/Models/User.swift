@@ -47,6 +47,6 @@ struct User: Codable, SearchResult {
     }
     
     func searchView() -> AnyView {
-        return AnyView(UserView(viewModel: UserViewModel(user: self)))
+        return AnyView(UserView(viewModel: UserViewModel(profile: self)))
     }
 }

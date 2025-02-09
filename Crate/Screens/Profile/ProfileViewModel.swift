@@ -2,30 +2,29 @@ import Foundation
 import Observation
 
 @Observable class ProfileViewModel {
+    private let batchSize: Int = 10
     private let user: UserService = .shared
     
     private(set) var friends: [User] = []
+    private(set) var isUserLoaded: Bool = false
+    private(set) var profile: User?
     
     private var canLoadMorePages: Bool = true
     private var page: Int = 1
     private var searchTask: Task<Void, Never>? = nil
     
-    var username: String {
-        return user.user?.username ?? "unknown"
-    }
-    
-    var avatar: URL? {
-        if let avatar = user.user?.avatar {
-            return URL(string: avatar)
-        } else {
-            return nil
+    func fetchUser() async {
+        do {
+            profile = try await user.retrieveUser()
+            isUserLoaded = true
+        } catch {
+            print(error)
         }
     }
     
     func loadInitialFriends() async {
         searchTask?.cancel()
         searchTask = nil
-        friends.removeAll()
         canLoadMorePages = true
         page = 1
         
@@ -38,7 +37,7 @@ import Observation
     func loadMoreFriends(currentItem: User) {
         guard canLoadMorePages else { return }
         
-        if friends.count >= 3, friends[friends.count - 3].id == currentItem.id {
+        if friends.count >= 1, friends[friends.count - 1].id == currentItem.id {
             searchTask = Task {
                 await fetchFriends()
             }
@@ -47,12 +46,12 @@ import Observation
     
     private func fetchFriends() async {
         do {
-            let friends = try await user.retrieveFriends(page: page)
+            let friends = try await user.retrieveFriends(page: page, batchSize: batchSize)
             
             if Task.isCancelled { return }
             self.friends += friends
             
-            if friends.count < 10 {
+            if friends.count < batchSize {
                 canLoadMorePages = false
             }
             page += 1

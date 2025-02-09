@@ -2,13 +2,29 @@ import SwiftUI
 import Kingfisher
 
 struct CrateView: View {
+    @Environment(\.dismiss) private var dismiss
+    
     @State var viewModel: CrateViewModel
     
     var body: some View {
         ZStack {
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading) {
-                    Title(text: viewModel.crate.name)
+                    HStack {
+                        Title(text: viewModel.crate.name)
+                        
+                        Menu {
+                            Button(action: {
+                                viewModel.deleteCrate()
+                                dismiss()
+                            }) {
+                                Label("Delete", systemImage: "trash.fill")
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis")
+                        }
+                        
+                    }
                     
                     RoundedNavButton(text: "Add To Crate", destination: CrateAddView(viewModel: $viewModel))
                     

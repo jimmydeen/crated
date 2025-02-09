@@ -8,8 +8,8 @@ struct AccountView: View {
     var body: some View {
         VStack(alignment: .leading) {
             switch viewModel.tab {
-                case .emailSignIn: signInForm
-                case .emailSignUp: signUpForm
+                case .emailSignIn: emailSignInForm
+                case .emailSignUp: emailSignUpForm
                 case .forgotPassword: forgotPasswordForm
             }
             
@@ -17,81 +17,86 @@ struct AccountView: View {
             
             Spacer()
         }
-        .padding(.horizontal)
+        .padding(.standard)
     }
     
-    var signInForm: some View {
+    var emailSignInForm: some View {
         Group {
             Title(text: "Sign In")
             
             RoundedTextField(text: $viewModel.email, placeholder: "Email")
             
-            RoundedSecureField(text: $viewModel.password, placeholder: "Password")
+            RoundedTogglableSecureField(text: $viewModel.password, placeholder: "Password")
             
-            RoundedButton(text: "Sign In") {
-                Task {
-                    await viewModel.signIn()
-                    if viewModel.errorMessage == nil {
-                        dismiss()
+            HStack {
+                RoundedSecondaryButton(text: "Forgot Password") {
+                    viewModel.changeTab(tab: .forgotPassword)
+                }
+                
+                RoundedButton(text: "Sign In") {
+                    Task {
+                        await viewModel.signIn()
+                        if viewModel.errorMessage == nil {
+                            dismiss()
+                        }
                     }
                 }
             }
+            .padding(.bottom, .standard)
             
             RoundedButton(text: "Create Account") {
                 viewModel.changeTab(tab: .emailSignUp)
             }
             .disabled(viewModel.isLoading)
-            
-            RoundedButton(text: "Forgot Password") {
-                viewModel.changeTab(tab: .forgotPassword)
-            }
         }
     }
     
-    var signUpForm: some View {
+    var emailSignUpForm: some View {
         Group {
             Title(text: "Create Account")
             
-            RoundedButton(text: "Go back") {
-                viewModel.changeTab(tab: .emailSignIn)
-            }
+            RoundedTextField(text: $viewModel.email, placeholder: "Email")
             
             RoundedTextField(text: $viewModel.username, placeholder: "Username")
             
-            RoundedTextField(text: $viewModel.email, placeholder: "Email")
+            RoundedTogglableSecureField(text: $viewModel.password, placeholder: "Password")
             
-            RoundedSecureField(text: $viewModel.password, placeholder: "Password")
+            RoundedTogglableSecureField(text: $viewModel.confirmPassword, placeholder: "Confirm Password")
+                .padding(.bottom, .standard)
             
-            RoundedSecureField(text: $viewModel.confirmPassword, placeholder: "Confirm Password")
-            
-            RoundedButton(text: "Sign Up") {
-                Task {
-                    await viewModel.signUp()
-                    if viewModel.errorMessage == nil {
-                        dismiss()
+            HStack {
+                RoundedButton(text: "Back") {
+                    viewModel.changeTab(tab: .emailSignIn)
+                }
+                
+                RoundedButton(text: "Continue") {
+                    Task {
+                        await viewModel.signUp()
+                        if viewModel.errorMessage == nil {
+                            dismiss()
+                        }
                     }
                 }
+                .disabled(viewModel.isLoading)
             }
-            .disabled(viewModel.isLoading)
         }
     }
     
     var forgotPasswordForm: some View {
         Group {
-            Title(text: "Forgot Password")
-            
-            RoundedButton(text: "Go back") {
-                viewModel.changeTab(tab: .emailSignIn)
-            }
+            Title(text: "Account Recovery")
             
             RoundedTextField(text: $viewModel.email, placeholder: "Email")
+                .padding(.bottom, .standard)
             
-            RoundedButton(text: "Send email") {
-                viewModel.sendPasswordReset()
-            }
-            
-            RoundedButton(text: "Continue to sign in") {
-                viewModel.changeTab(tab: .emailSignIn)
+            HStack {
+                RoundedButton(text: "Back") {
+                    viewModel.changeTab(tab: .emailSignIn)
+                }
+                
+                RoundedButton(text: "Continue") {
+                    viewModel.sendPasswordReset()
+                }
             }
         }
     }
@@ -100,10 +105,12 @@ struct AccountView: View {
         Group {
             if let error = viewModel.errorMessage {
                 Text(error)
+                    .foregroundColor(.primary)
             }
             
             if let success = viewModel.successMessage {
                 Text(success)
+                    .foregroundColor(.red)
             }
         }
     }
